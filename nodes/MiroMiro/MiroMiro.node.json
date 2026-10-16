@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-miromiro.miroMiro",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Marketing & Content"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://miromiro.app/api/docs/authentication"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/SoraiaBarroso/n8n-nodes-miromiro#readme"
+			}
+		]
+	}
+}

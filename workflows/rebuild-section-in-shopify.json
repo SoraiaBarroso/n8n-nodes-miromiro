@@ -1,0 +1,64 @@
+{
+  "name": "Rebuild a website section in your Shopify theme with MiroMiro",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Rebuild a website section in your Shopify theme\n\nTurns a section of any live website into a Shopify theme section and uploads it straight into your theme. Then add it to any page from the theme editor.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential.\n2. In **Extract as Shopify section**, set the page URL and the section (Hero, Pricing, Footer...).\n3. In Shopify, create a custom app with the `write_themes` scope and copy its Admin API access token. Add it as a **Header Auth** credential: name `X-Shopify-Access-Token`, value = the token.\n4. In **Upload to Shopify theme**, replace `YOUR-STORE` (the part before .myshopify.com) and `YOUR-THEME-ID` (Online Store > Themes > Edit code: the number in the URL).\n5. Run it, then open the theme editor and **Add section**.\n\nTest on an unpublished theme copy first. The text and images belong to the source site: replace them with your own unless it is your site.",
+        "height": 520,
+        "width": 440
+      },
+      "id": "note-1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-540, -180]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "https://linear.app",
+        "framework": "shopify",
+        "section": "hero",
+        "codeOptions": {}
+      },
+      "id": "miromiro-1",
+      "name": "Extract as Shopify section",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "credentials": { "miroMiroApi": { "id": "", "name": "MiroMiro API" } }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://YOUR-STORE.myshopify.com/admin/api/2025-07/themes/YOUR-THEME-ID/assets.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ asset: { key: 'sections/miromiro-' + $json.section + '.liquid', value: $json.code } }) }}",
+        "options": {}
+      },
+      "id": "shopify-1",
+      "name": "Upload to Shopify theme",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "credentials": { "httpHeaderAuth": { "id": "", "name": "Shopify Admin token" } }
+    }
+  ],
+  "connections": {
+    "Run": { "main": [[{ "node": "Extract as Shopify section", "type": "main", "index": 0 }]] },
+    "Extract as Shopify section": { "main": [[{ "node": "Upload to Shopify theme", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

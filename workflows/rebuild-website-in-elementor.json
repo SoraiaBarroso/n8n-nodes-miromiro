@@ -1,0 +1,71 @@
+{
+  "name": "Rebuild website sections as Elementor templates with MiroMiro",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Rebuild website sections in Elementor\n\nTurns sections of any live website into Elementor templates you import into WordPress, styled like the original (colors, fonts, spacing, responsive and hover styles).\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding (300 credits a month, no card) and add it as a **MiroMiro API** credential.\n2. List the pages and sections in **Pages to rebuild**.\n3. Run it. Each item becomes a `.json` file: import it in WordPress under *Templates > Saved Templates > Import*.\n\nEach section costs 25 credits. Add a Google Drive, Dropbox or email node at the end to deliver the files.\n\nThe text and images belong to the source site: replace them with your own unless it is your site.",
+        "height": 420,
+        "width": 420
+      },
+      "id": "note-1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-520, -140]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per section to rebuild. section: hero, header, pricing, features, testimonials, faq, cta or footer\nreturn [\n  { json: { url: 'https://linear.app', section: 'hero' } },\n  { json: { url: 'https://linear.app/pricing', section: 'pricing' } },\n  { json: { url: 'https://stripe.com', section: 'footer' } }\n];"
+      },
+      "id": "pages-1",
+      "name": "Pages to rebuild",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.url }}",
+        "framework": "elementor",
+        "section": "={{ $json.section }}",
+        "codeOptions": {}
+      },
+      "id": "miromiro-1",
+      "name": "Extract as Elementor template",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [440, 0],
+      "credentials": { "miroMiroApi": { "id": "", "name": "MiroMiro API" } }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "code",
+        "options": {
+          "fileName": "={{ $json.url.split('/')[2] }}-{{ $json.section }}-elementor.json"
+        }
+      },
+      "id": "file-1",
+      "name": "Save as .json file",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [660, 0]
+    }
+  ],
+  "connections": {
+    "Run": { "main": [[{ "node": "Pages to rebuild", "type": "main", "index": 0 }]] },
+    "Pages to rebuild": { "main": [[{ "node": "Extract as Elementor template", "type": "main", "index": 0 }]] },
+    "Extract as Elementor template": { "main": [[{ "node": "Save as .json file", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}
