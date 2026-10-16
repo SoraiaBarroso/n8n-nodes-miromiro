@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-miromiro",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "n8n node for MiroMiro: turn any live website into Elementor templates, Shopify sections, Tailwind/React/Vue code, brand colors, design tokens and assets.",
 	"license": "MIT",
 	"homepage": "https://miromiro.app/api",

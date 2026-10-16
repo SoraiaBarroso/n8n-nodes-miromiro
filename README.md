@@ -76,6 +76,10 @@ Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Impo
 
 ## Version history
 
+### 0.1.3
+
+Clearer action names in the node picker (for example "Get the brand kit of a website").
+
 ### 0.1.2
 
 README lists the three ready-made workflows, including the new site-to-Next.js migration. No changes to the node.

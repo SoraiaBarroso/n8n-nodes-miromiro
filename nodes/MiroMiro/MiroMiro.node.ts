@@ -74,14 +74,14 @@ export class MiroMiro implements INodeType {
 					{
 						name: 'Extract Audio',
 						value: 'audio',
-						action: 'List a website s audio files',
+						action: 'List the audio files on a website',
 						description: 'Audio files and podcast enclosures (1 credit)',
 						routing: { request: { method: 'GET', url: '/v1/audio' } },
 					},
 					{
 						name: 'Extract Brand',
 						value: 'brand',
-						action: 'Get a website s brand colors fonts and logo',
+						action: 'Get the brand kit of a website',
 						description: 'Brand colors with roles, fonts and logo (15 credits)',
 						routing: { request: { method: 'GET', url: '/v1/brand' } },
 					},
@@ -96,42 +96,42 @@ export class MiroMiro implements INodeType {
 					{
 						name: 'Extract Design Tokens',
 						value: 'tokens',
-						action: 'Get a website s design tokens',
+						action: 'Get the design tokens of a website',
 						description: 'Every color, font, size, radius and shadow the page uses (10 credits)',
 						routing: { request: { method: 'GET', url: '/v1/extract' } },
 					},
 					{
 						name: 'Extract Fonts',
 						value: 'fonts',
-						action: 'Get a website s fonts',
+						action: 'Get the fonts of a website',
 						description: 'Font families and font files (5 credits)',
 						routing: { request: { method: 'GET', url: '/v1/fonts' } },
 					},
 					{
 						name: 'Extract Images',
 						value: 'images',
-						action: 'List a website s images',
+						action: 'List the images on a website',
 						description: 'Every image URL on the page (1 credit)',
 						routing: { request: { method: 'GET', url: '/v1/images' } },
 					},
 					{
 						name: 'Extract Lottie Animations',
 						value: 'lottie',
-						action: 'Get a website s lottie animations',
+						action: 'Get the lottie animations on a website',
 						description: 'Lottie animation files the page uses (3 credits)',
 						routing: { request: { method: 'GET', url: '/v1/lottie' } },
 					},
 					{
 						name: 'Extract SVGs',
 						value: 'svgs',
-						action: 'Get a website s SVG icons and logos',
+						action: 'Get the SVG icons and logos of a website',
 						description: 'Inline SVG markup and SVG files (1 credit)',
 						routing: { request: { method: 'GET', url: '/v1/svg' } },
 					},
 					{
 						name: 'Extract Videos',
 						value: 'videos',
-						action: 'List a website s videos',
+						action: 'List the videos on a website',
 						description: 'Video files and player embeds (1 credit)',
 						routing: { request: { method: 'GET', url: '/v1/videos' } },
 					},
@@ -210,7 +210,7 @@ export class MiroMiro implements INodeType {
 					{ name: 'Testimonials', value: 'testimonials' },
 				],
 				description:
-					'Which part of the page to extract. Found on the page itself, so it works without knowing the markup. Every result also lists the page s other sections with a ready selector.',
+					'Which part of the page to extract. Found on the page itself, so it works without knowing the markup. Every result also lists the page’s other sections with a ready selector.',
 				routing: { send: { type: 'query', property: 'section' } },
 			},
 			{
@@ -228,7 +228,7 @@ export class MiroMiro implements INodeType {
 						default: '',
 						placeholder: 'section.pricing-grid',
 						description:
-							'A CSS selector from a previous result s sections list. Overrides Section. Do not guess one: a selector that matches nothing falls back to the hero.',
+							'A CSS selector from a previous result’s sections list. Overrides Section. Do not guess one: a selector that matches nothing falls back to the hero.',
 						routing: { send: { type: 'query', property: 'selector' } },
 					},
 					{
