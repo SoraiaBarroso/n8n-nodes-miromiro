@@ -66,6 +66,7 @@ Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Impo
 
 * **[Rebuild website sections as Elementor templates](workflows/rebuild-website-in-elementor.json):** a list of pages and sections in, importable Elementor `.json` files out.
 * **[Rebuild a website section in your Shopify theme](workflows/rebuild-section-in-shopify.json):** extracts a section as Liquid and uploads it straight into your theme through the Shopify Admin API.
+* **[Brand board from any website](workflows/brand-board.json):** open `/webhook/brand-board?url=stripe.com` in a browser and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is.
 * **[Migrate a site to Next.js](workflows/migrate-site-to-nextjs.json):** rebuilds the pages of a WordPress/Elementor, Shopify or any other live site as a Next.js + Tailwind project, every section in page order, and zips it. `npm install`, `npm run dev`.
 
 ## Resources

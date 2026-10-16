@@ -1,0 +1,133 @@
+{
+  "name": "Brand board from any website with MiroMiro",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Brand board from any website\n\nOpen the webhook URL in your browser with `?url=` and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is about each.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential.\n2. Activate the workflow.\n3. Open `<your n8n>/webhook/brand-board?url=stripe.com` in a browser.\n\nEach new site costs 15 credits; the same site again within 24 hours is free.",
+        "height": 400,
+        "width": 420
+      },
+      "id": "note-1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "path": "brand-board",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "hook-1",
+      "name": "Open in browser",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "miromiro-brand-board"
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $json.query.url }}",
+        "options": {}
+      },
+      "id": "brand-1",
+      "name": "Extract Brand",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Draws a brand board page from MiroMiro's Extract Brand result.\nconst b = $input.first().json\nconst esc = (s) => String(s ?? '').replace(/[&<>\"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]))\nconst hex = (c) => String(c || '').toLowerCase()\n// Black or white text, whichever reads better on the color.\nconst ink = (c) => {\n  const m = /^#?([0-9a-f]{6})$/i.exec(hex(c).replace('#', '').padEnd(6, '0'))\n  if (!m) return '#111'\n  const n = parseInt(m[1], 16)\n  const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255\n  return lum > 0.6 ? '#111' : '#fff'\n}\nconst host = String(b.url || '').replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/.*$/, '')\nconst colors = b.colors || {}\nconst names = b.colorNames || {}\nconst roles = ['primary', 'accent', 'text', 'background'].filter((r) => colors[r])\nconst palette = (b.palette || []).slice(0, 12)\nconst fonts = b.typography || {}\nconst fontList = [fonts.primary, fonts.mono].filter(Boolean)\nconst socials = (b.socials || []).slice(0, 6)\nconst logo = (b.logos || []).find((l) => /\\.svg/i.test(l.url)) || (b.logos || [])[0] || (b.logo ? { url: b.logo } : null)\n\nconst roleCard = (r) => `\n  <div class=\"role\" style=\"background:${esc(colors[r])};color:${ink(colors[r])}\">\n    <span class=\"role-name\">${esc(r)}</span>\n    <span class=\"role-hex\">${esc(hex(colors[r]))}</span>\n    <span class=\"role-label\">${esc(names[r] || '')}</span>\n  </div>`\nconst swatch = (p) => `\n  <div class=\"swatch\">\n    <div class=\"chip\" style=\"background:${esc(p.color)}\"></div>\n    <div class=\"meta\"><b>${esc(p.name)}</b><span>${esc(hex(p.color))}</span></div>\n  </div>`\n\nconst html = `<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>${esc(host)} brand board</title>\n<style>\n  *{box-sizing:border-box;margin:0}\n  body{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#f4f4f5;color:#18181b;padding:40px 20px}\n  .wrap{max-width:1040px;margin:0 auto}\n  header{display:flex;align-items:center;gap:18px;background:#fff;border-radius:24px;padding:24px 28px;box-shadow:0 1px 2px rgba(0,0,0,.05)}\n  header img{width:64px;height:64px;object-fit:contain;border-radius:14px;background:#fafafa;padding:8px;border:1px solid #eee}\n  header h1{font-size:28px;letter-spacing:-.02em}\n  header p{color:#71717a;font-size:14px;margin-top:4px;max-width:640px}\n  h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#71717a;margin:34px 4px 14px}\n  .roles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}\n  .role{border-radius:22px;min-height:170px;padding:20px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;border:1px solid rgba(0,0,0,.06)}\n  .role-name{font-size:12px;text-transform:uppercase;letter-spacing:.1em;opacity:.8}\n  .role-hex{font-size:26px;font-weight:600;letter-spacing:-.01em}\n  .role-label{font-size:13px;opacity:.8}\n  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}\n  .swatch{background:#fff;border-radius:18px;padding:8px;border:1px solid #eee}\n  .chip{height:78px;border-radius:12px;border:1px solid rgba(0,0,0,.06)}\n  .meta{padding:8px 4px 2px;display:flex;flex-direction:column;gap:2px;font-size:12.5px}\n  .meta span{color:#71717a;font-family:ui-monospace,Menlo,monospace}\n  .fonts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}\n  .font{background:#fff;border-radius:22px;padding:24px;border:1px solid #eee}\n  .font .sample{font-size:44px;letter-spacing:-.02em;line-height:1.1;margin:10px 0}\n  .font small{color:#71717a}\n  .note{background:#fff;border-radius:18px;padding:16px 20px;border:1px solid #eee;color:#3f3f46;font-size:14px;line-height:1.6}\n  .socials{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}\n  .socials a{background:#18181b;color:#fff;text-decoration:none;font-size:12.5px;padding:6px 12px;border-radius:999px}\n  footer{margin-top:30px;text-align:center;color:#a1a1aa;font-size:12.5px}\n  footer a{color:#6366f1;text-decoration:none}\n  @media(max-width:760px){.roles{grid-template-columns:repeat(2,1fr)}.palette{grid-template-columns:repeat(3,1fr)}.fonts{grid-template-columns:1fr}}\n</style></head>\n<body><div class=\"wrap\">\n  <header>\n    ${logo ? `<img src=\"${esc(logo.url)}\" alt=\"\">` : ''}\n    <div><h1>${esc(host)}</h1><p>${esc(b.description || b.title || '')}</p></div>\n  </header>\n\n  <h2>Brand colors</h2>\n  <div class=\"roles\">${roles.map(roleCard).join('')}</div>\n\n  ${palette.length ? `<h2>Palette</h2><div class=\"palette\">${palette.map(swatch).join('')}</div>` : ''}\n\n  ${fontList.length ? `<h2>Typography</h2><div class=\"fonts\">${fontList.map((f, i) => `\n    <div class=\"font\"><small>${i === 0 && f === fonts.primary ? 'Primary' : 'Mono'}</small>\n      <div class=\"sample\" style=\"font-family:'${esc(f)}',${i === 0 && f === fonts.primary ? 'Inter,system-ui,sans-serif' : 'ui-monospace,monospace'}\">Aa Bb Cc 123</div>\n      <b>${esc(f)}</b></div>`).join('')}</div>` : ''}\n\n  <h2>How sure is this</h2>\n  <div class=\"note\">${esc(b.signals && b.signals.explanation ? b.signals.explanation : '')}\n    ${socials.length ? `<div class=\"socials\">${socials.map((s) => `<a href=\"${esc(s.url)}\" target=\"_blank\" rel=\"noopener\">${esc(s.platform)} ${esc(s.handle || '')}</a>`).join('')}</div>` : ''}\n  </div>\n\n  <footer>Built with n8n and <a href=\"https://miromiro.app/api\" target=\"_blank\" rel=\"noopener\">MiroMiro</a> from the live site</footer>\n</div></body></html>`\n\nreturn [{ json: { html } }]\n"
+      },
+      "id": "board-1",
+      "name": "Draw the brand board",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-1",
+      "name": "Show the page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Open in browser": {
+      "main": [
+        [
+          {
+            "node": "Extract Brand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Brand": {
+      "main": [
+        [
+          {
+            "node": "Draw the brand board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draw the brand board": {
+      "main": [
+        [
+          {
+            "node": "Show the page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
