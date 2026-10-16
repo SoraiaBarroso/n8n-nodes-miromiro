@@ -75,6 +75,10 @@ Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Impo
 
 ## Version history
 
+### 0.1.1
+
+Published through npm Trusted Publishing from GitHub Actions. No changes to the node.
+
 ### 0.1.0
 
 First release: nine website extractions, the Elementor and Shopify outputs, and a free credential test.
