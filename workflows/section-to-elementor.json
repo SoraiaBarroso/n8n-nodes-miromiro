@@ -30,7 +30,7 @@
     },
     {
       "id": "b1",
-      "name": "Extract as Elementor",
+      "name": "Turn the hero into Elementor",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
@@ -54,7 +54,7 @@
     },
     {
       "id": "b2",
-      "name": "Save as .json",
+      "name": "Save the template as .json",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
@@ -75,18 +75,18 @@
       "main": [
         [
           {
-            "node": "Extract as Elementor",
+            "node": "Turn the hero into Elementor",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract as Elementor": {
+    "Turn the hero into Elementor": {
       "main": [
         [
           {
-            "node": "Save as .json",
+            "node": "Save the template as .json",
             "type": "main",
             "index": 0
           }

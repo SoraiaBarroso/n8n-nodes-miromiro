@@ -22,7 +22,7 @@
         "options": {}
       },
       "id": "c1",
-      "name": "When chat message received",
+      "name": "Chat",
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
@@ -37,7 +37,7 @@
         }
       },
       "id": "a1",
-      "name": "AI Agent",
+      "name": "AI agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
@@ -56,7 +56,7 @@
         "options": {}
       },
       "id": "an1",
-      "name": "Anthropic Chat Model",
+      "name": "Chat model (Claude)",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
       "typeVersion": 1.3,
       "position": [
@@ -78,7 +78,7 @@
         "options": {}
       },
       "id": "m3",
-      "name": "MiroMiro brand",
+      "name": "Tool: get the brand kit",
       "type": "n8n-nodes-miromiro.miroMiroTool",
       "typeVersion": 1,
       "position": [
@@ -102,7 +102,7 @@
         "codeOptions": {}
       },
       "id": "mm-code-tool-1",
-      "name": "MiroMiro code",
+      "name": "Tool: turn a section into code",
       "type": "n8n-nodes-miromiro.miroMiroTool",
       "typeVersion": 1,
       "position": [
@@ -118,44 +118,44 @@
     }
   ],
   "connections": {
-    "When chat message received": {
+    "Chat": {
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Anthropic Chat Model": {
+    "Chat model (Claude)": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI agent",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "MiroMiro brand": {
+    "Tool: get the brand kit": {
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI agent",
             "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "MiroMiro code": {
+    "Tool: turn a section into code": {
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "AI agent",
             "type": "ai_tool",
             "index": 0
           }

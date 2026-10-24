@@ -30,7 +30,7 @@
     },
     {
       "id": "a1",
-      "name": "Extract Images",
+      "name": "List the images on the page",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
@@ -52,7 +52,7 @@
     },
     {
       "id": "a2",
-      "name": "One item per image",
+      "name": "Split: one item per image",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -65,7 +65,7 @@
     },
     {
       "id": "a3",
-      "name": "Download image",
+      "name": "Download each image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
@@ -86,7 +86,7 @@
     },
     {
       "id": "a4",
-      "name": "Collect files",
+      "name": "Put all images together",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -99,7 +99,7 @@
     },
     {
       "id": "a5",
-      "name": "Zip them",
+      "name": "Zip the images",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
@@ -110,7 +110,7 @@
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('Extract Images').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip",
+        "fileName": "={{ String($('List the images on the page').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip",
         "binaryPropertyOutput": "data"
       }
     }
@@ -120,51 +120,51 @@
       "main": [
         [
           {
-            "node": "Extract Images",
+            "node": "List the images on the page",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract Images": {
+    "List the images on the page": {
       "main": [
         [
           {
-            "node": "One item per image",
+            "node": "Split: one item per image",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "One item per image": {
+    "Split: one item per image": {
       "main": [
         [
           {
-            "node": "Download image",
+            "node": "Download each image",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Download image": {
+    "Download each image": {
       "main": [
         [
           {
-            "node": "Collect files",
+            "node": "Put all images together",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Collect files": {
+    "Put all images together": {
       "main": [
         [
           {
-            "node": "Zip them",
+            "node": "Zip the images",
             "type": "main",
             "index": 0
           }

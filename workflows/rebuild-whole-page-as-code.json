@@ -30,7 +30,7 @@
     },
     {
       "id": "c1",
-      "name": "Read the page",
+      "name": "Turn the hero into code + find sections",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
@@ -54,7 +54,7 @@
     },
     {
       "id": "c2",
-      "name": "List the sections",
+      "name": "Split: one item per section",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -67,7 +67,7 @@
     },
     {
       "id": "c3",
-      "name": "Rebuild each section",
+      "name": "Turn each section into code",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
@@ -94,7 +94,7 @@
     },
     {
       "id": "c4",
-      "name": "Whole page",
+      "name": "Get the whole-page link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -102,7 +102,7 @@
         60
       ],
       "parameters": {
-        "jsCode": "// Each section files itself under the page; the newest link has them all.\nconst all = [...$('Read the page').all(), ...$input.all()].map(i => i.json)\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { pagePreviewUrl: page, sections: all.filter(r => r.code).length }, pairedItem: { item: 0 } }]"
+        "jsCode": "// Each section files itself under the page; the newest link has them all.\nconst all = [...$('Turn the hero into code + find sections').all(), ...$input.all()].map(i => i.json)\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { pagePreviewUrl: page, sections: all.filter(r => r.code).length }, pairedItem: { item: 0 } }]"
       }
     }
   ],
@@ -111,40 +111,40 @@
       "main": [
         [
           {
-            "node": "Read the page",
+            "node": "Turn the hero into code + find sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Read the page": {
+    "Turn the hero into code + find sections": {
       "main": [
         [
           {
-            "node": "List the sections",
+            "node": "Split: one item per section",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "List the sections": {
+    "Split: one item per section": {
       "main": [
         [
           {
-            "node": "Rebuild each section",
+            "node": "Turn each section into code",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Rebuild each section": {
+    "Turn each section into code": {
       "main": [
         [
           {
-            "node": "Whole page",
+            "node": "Get the whole-page link",
             "type": "main",
             "index": 0
           }

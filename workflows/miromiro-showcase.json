@@ -1,0 +1,531 @@
+{
+  "name": "MiroMiro: images, Elementor, whole page as code, AI agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "t",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1. Download every image from a website\nAll images on the page, fetched and zipped into one file. Change the URL in **Extract Images**.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.",
+        "height": 260,
+        "width": 1100,
+        "color": 4
+      },
+      "id": "a",
+      "name": "Note a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "images",
+        "url": "https://www.allbirds.com",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "a1",
+      "name": "List the images on the page",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        64
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// MiroMiro returns every image URL on the page. Keep the first 40.\nreturn ($input.first().json.images || []).slice(0, 40).map((img, i) => ({ json: { url: img.url || img.src || img }, pairedItem: { item: 0 } }))"
+      },
+      "id": "a2",
+      "name": "Split: one item per image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "a3",
+      "name": "Download each image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        64
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Put every downloaded image on one item so they land in one zip.\nconst binary = {}\n$input.all().forEach((item, i) => { if (item.binary?.data) binary['image_' + String(i + 1).padStart(2, '0')] = item.binary.data })\nreturn [{ json: { images: Object.keys(binary).length }, binary, pairedItem: { item: 0 } }]"
+      },
+      "id": "a4",
+      "name": "Put all images together",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
+        "fileName": "={{ String($('List the images on the page').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip"
+      },
+      "id": "a5",
+      "name": "Zip the images",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2. Turn a section into an Elementor template\nImport the .json in WordPress: Templates > Saved Templates > Import.",
+        "height": 240,
+        "width": 1100,
+        "color": 6
+      },
+      "id": "b",
+      "name": "Note b",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        192,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://stripe.com",
+        "framework": "elementor",
+        "codeOptions": {},
+        "requestOptions": {}
+      },
+      "id": "b1",
+      "name": "Turn the hero into Elementor",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        368
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "code",
+        "options": {
+          "fileName": "={{ String($json.url || 'website').split('/')[2].replace(/^www./, '') }}-elementor.json"
+        }
+      },
+      "id": "b2",
+      "name": "Save the template as .json",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Rebuild a whole page as code\nEvery section of the page, rebuilt in a real browser and assembled. Open pagePreviewUrl to see it.",
+        "height": 260,
+        "width": 1100,
+        "color": 5
+      },
+      "id": "c",
+      "name": "Note c",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        192,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://linear.app",
+        "codeOptions": {},
+        "requestOptions": {}
+      },
+      "id": "c1",
+      "name": "Turn the hero into code + find sections",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        640
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// The first result lists every other section on the page, with a ready selector.\nconst first = $input.first().json\nreturn (first.sections || []).filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order).slice(0, 12)\n  .map(s => ({ json: { url: first.url || 'https://linear.app', selector: s.selector, section: s.label }, pairedItem: { item: 0 } }))"
+      },
+      "id": "c2",
+      "name": "Split: one item per section",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "codeOptions": {
+          "selector": "={{ $json.selector }}"
+        },
+        "requestOptions": {}
+      },
+      "id": "c3",
+      "name": "Turn each section into code",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        720,
+        640
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Each section files itself under the page; the newest link has them all.\nconst all = [...$('Turn the hero into code + find sections').all(), ...$input.all()].map(i => i.json)\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { pagePreviewUrl: page, sections: all.filter(r => r.code).length }, pairedItem: { item: 0 } }]"
+      },
+      "id": "c4",
+      "name": "Get the whole-page link",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        640
+      ]
+    },
+    {
+      "id": "nd",
+      "name": "Note d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        880
+      ],
+      "parameters": {
+        "width": 1100,
+        "height": 480,
+        "color": 3,
+        "content": "## 4. Use MiroMiro as an AI agent tool\nClick **Open chat** and ask: *Turn the hero of linear.app into a React component* or *What are the brand colors and fonts of airbnb.com?*\n\nAdd your chat model credential (Anthropic here; swap in OpenAI or Gemini if you prefer)."
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ag-c1",
+      "name": "Chat",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You help people rebuild websites. When the user names a website, use MiroMiro: \"MiroMiro brand\" for its brand colors, fonts and logo, \"MiroMiro code\" to turn a section of it into a React component. Return the code exactly as the tool gives it, then add the previewUrl so they can see it rendered."
+        }
+      },
+      "id": "ag-a1",
+      "name": "AI agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        520,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-haiku-5-5",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      },
+      "id": "ag-an1",
+      "name": "Chat model (Claude)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        1220
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $fromAI('url', 'The website address to read, for example https://airbnb.com', 'string') }}",
+        "options": {}
+      },
+      "id": "ag-m3",
+      "name": "Tool: get the brand kit",
+      "type": "n8n-nodes-miromiro.miroMiroTool",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1220
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $fromAI('url', 'The website to rebuild, for example https://linear.app', 'string') }}",
+        "framework": "jsx",
+        "section": "={{ $fromAI('section', 'Which part of the page: hero, header, footer, pricing, features, testimonials, faq or cta', 'string') }}",
+        "codeOptions": {}
+      },
+      "id": "ag-mm-code-tool-1",
+      "name": "Tool: turn a section into code",
+      "type": "n8n-nodes-miromiro.miroMiroTool",
+      "typeVersion": 1,
+      "position": [
+        840,
+        1220
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "List the images on the page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Turn the hero into Elementor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Turn the hero into code + find sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List the images on the page": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per image": {
+      "main": [
+        [
+          {
+            "node": "Download each image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download each image": {
+      "main": [
+        [
+          {
+            "node": "Put all images together",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Put all images together": {
+      "main": [
+        [
+          {
+            "node": "Zip the images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the hero into Elementor": {
+      "main": [
+        [
+          {
+            "node": "Save the template as .json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the hero into code + find sections": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per section",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per section": {
+      "main": [
+        [
+          {
+            "node": "Turn each section into code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn each section into code": {
+      "main": [
+        [
+          {
+            "node": "Get the whole-page link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "AI agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model (Claude)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: get the brand kit": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: turn a section into code": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
