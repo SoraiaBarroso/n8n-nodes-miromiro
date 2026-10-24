@@ -1,0 +1,220 @@
+{
+  "name": "Rebuild any website as code with MiroMiro",
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -260
+      ],
+      "parameters": {
+        "width": 1180,
+        "height": 200,
+        "content": "## Rebuild any website in one click\nOpen the form (Rebuild a website > Test URL / Production URL), paste a page and pick the output. MiroMiro finds every section (header, hero, features, pricing, footer...), rebuilds each one as real code in a browser, and opens the whole page, assembled, with a Download HTML button.\n\nEach section costs 25 credits; identical calls within 24h are free.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key."
+      }
+    },
+    {
+      "id": "n2",
+      "name": "Rebuild a website",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "formTitle": "Rebuild any website",
+        "formDescription": "Paste a page. MiroMiro rebuilds every section as code and opens the result.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Website",
+              "placeholder": "https://linear.app",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Output",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Tailwind"
+                  },
+                  {
+                    "option": "React"
+                  },
+                  {
+                    "option": "HTML + CSS"
+                  },
+                  {
+                    "option": "Vue"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "rebuild",
+          "buttonLabel": "Rebuild it"
+        }
+      }
+    },
+    {
+      "id": "n3",
+      "name": "Read the page",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.Website }}",
+        "framework": "={{ ({ 'Tailwind': 'tailwind', 'React': 'jsx', 'HTML + CSS': 'html', 'Vue': 'vue' })[$json.Output] || 'tailwind' }}",
+        "section": "hero",
+        "codeOptions": {}
+      }
+    },
+    {
+      "id": "n4",
+      "name": "List the sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// The first call returns the hero plus every other section on the page.\nconst first = $input.first().json\nconst form = $('Rebuild a website').first().json\nconst framework = ({ 'Tailwind': 'tailwind', 'React': 'jsx', 'HTML + CSS': 'html', 'Vue': 'vue' })[form.Output] || 'tailwind'\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 12)\nreturn rest.map(s => ({ json: { url: form.Website, framework, selector: s.selector, label: s.label, order: s.order } }))"
+      }
+    },
+    {
+      "id": "n5",
+      "name": "Rebuild each section",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.url }}",
+        "framework": "={{ $json.framework }}",
+        "section": "hero",
+        "codeOptions": {
+          "selector": "={{ $json.selector }}"
+        }
+      }
+    },
+    {
+      "id": "n6",
+      "name": "Whole page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Every section call files itself under the page; the newest link holds them all.\nconst all = [...$('Read the page').all(), ...$input.all()].map(i => i.json)\nconst withPage = all.filter(r => r.pagePreviewUrl)\nconst page = withPage.length ? withPage[withPage.length - 1].pagePreviewUrl : all[0].previewUrl\nreturn [{ json: { pagePreviewUrl: page, sections: all.filter(r => r.code).length } }]"
+      }
+    },
+    {
+      "id": "n7",
+      "name": "Open the rebuilt page",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "redirect",
+        "redirectUrl": "={{ $json.pagePreviewUrl }}"
+      }
+    }
+  ],
+  "connections": {
+    "Rebuild a website": {
+      "main": [
+        [
+          {
+            "node": "Read the page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the page": {
+      "main": [
+        [
+          {
+            "node": "List the sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List the sections": {
+      "main": [
+        [
+          {
+            "node": "Rebuild each section",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rebuild each section": {
+      "main": [
+        [
+          {
+            "node": "Whole page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whole page": {
+      "main": [
+        [
+          {
+            "node": "Open the rebuilt page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -64,6 +64,9 @@ Both arrive as one styled block with responsive and hover styles included, edite
 
 Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Import from File*):
 
+* **[Three use cases in one run](workflows/showcase-three-use-cases.json):** every image on a page downloaded into one `.zip`, a section turned into an Elementor template, and a whole page rebuilt as code, side by side.
+* **[Rebuild any website (form)](workflows/rebuild-any-website-form.json):** paste a URL into a form, pick Tailwind, React, HTML or Vue, and the browser opens the whole page rebuilt section by section, with a Download HTML button.
+* **[AI agent that rebuilds websites](workflows/ai-agent-rebuild-websites.json):** a chat agent with MiroMiro as its tools: "turn the hero of linear.app into a React component", "what are airbnb.com's brand colors?". Works with any chat model.
 * **[Rebuild website sections as Elementor templates](workflows/rebuild-website-in-elementor.json):** a list of pages and sections in, importable Elementor `.json` files out.
 * **[Rebuild a website section in your Shopify theme](workflows/rebuild-section-in-shopify.json):** extracts a section as Liquid and uploads it straight into your theme through the Shopify Admin API.
 * **[Brand board from any website](workflows/brand-board.json):** open `/webhook/brand-board?url=stripe.com` in a browser and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is.

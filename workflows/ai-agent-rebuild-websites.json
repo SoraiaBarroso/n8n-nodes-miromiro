@@ -1,0 +1,169 @@
+{
+  "name": "AI agent that rebuilds websites with MiroMiro",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## An AI agent that reads and rebuilds websites\nOpen the chat and ask:\n*Turn the hero of linear.app into a React component*\nor *What are the brand colors and fonts of airbnb.com?*\n\nWorks with any chat model: swap the Anthropic node for OpenAI, Gemini or another.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Add your model credential (Anthropic here).",
+        "height": 180,
+        "width": 640,
+        "color": 6
+      },
+      "id": "n2",
+      "name": "Note agent",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c1",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You help people rebuild websites. When the user names a website, use MiroMiro: \"MiroMiro brand\" for its brand colors, fonts and logo, \"MiroMiro code\" to turn a section of it into a React component. Return the code exactly as the tool gives it, then add the previewUrl so they can see it rendered."
+        }
+      },
+      "id": "a1",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        240,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-haiku-5-5",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      },
+      "id": "an1",
+      "name": "Anthropic Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        180,
+        700
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $fromAI('url', 'The website address to read, for example https://airbnb.com', 'string') }}",
+        "options": {}
+      },
+      "id": "m3",
+      "name": "MiroMiro brand",
+      "type": "n8n-nodes-miromiro.miroMiroTool",
+      "typeVersion": 1,
+      "position": [
+        400,
+        700
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $fromAI('url', 'The website to rebuild, for example https://linear.app', 'string') }}",
+        "framework": "jsx",
+        "section": "={{ $fromAI('section', 'Which part of the page: hero, header, footer, pricing, features, testimonials, faq or cta', 'string') }}",
+        "codeOptions": {}
+      },
+      "id": "mm-code-tool-1",
+      "name": "MiroMiro code",
+      "type": "n8n-nodes-miromiro.miroMiroTool",
+      "typeVersion": 1,
+      "position": [
+        620,
+        700
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MiroMiro brand": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MiroMiro code": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
