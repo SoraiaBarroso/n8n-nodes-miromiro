@@ -1,0 +1,180 @@
+{
+  "name": "Compare the brands of many websites in one table (CSV) with MiroMiro",
+  "nodes": [
+    {
+      "id": "note",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -160
+      ],
+      "parameters": {
+        "content": "## Compare the brands of many websites\nPut a list of websites in **Settings**, one per line. MiroMiro reads each brand and n8n puts them in one table: brand colors, fonts, logo, and how sure MiroMiro is.\n\nDownload the CSV from **Save as a spreadsheet** and open it in Excel or Google Sheets. Useful for competitor research and client pitches.\n\n10 credits per website.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 380,
+        "width": 760,
+        "color": 7
+      }
+    },
+    {
+      "id": "run",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "websites",
+              "value": "https://stripe.com\nhttps://linear.app\nhttps://www.airbnb.com\nhttps://vercel.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "w1",
+      "name": "Split: one item per website",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// One item per line (commas work too).\nreturn String($json.websites).split(/\\n|,/).map(s => s.trim()).filter(Boolean)\n  .map(website => ({ json: { website }, pairedItem: { item: 0 } }))"
+      }
+    },
+    {
+      "id": "w2",
+      "name": "Get the brand kit",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $json.website }}",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "w3",
+      "name": "One row per website",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sites = $('Split: one item per website').all()\nreturn $input.all().map((item, i) => {\n  const b = item.json, c = b.colors || {}\n  return { json: {\n    website: sites[i]?.json.website || b.url,\n    name: b.siteName || '',\n    primary: c.primary || '', accent: c.accent || '', background: c.background || '', text: c.text || '',\n    fonts: (b.fonts || []).join(', '),\n    logo: b.logo || '',\n    confidence: b.confidence ?? '',\n    colors_from: b.signals?.primarySource || '',\n    error: b.error ? String(b.error.message || b.error) : '',\n  }, pairedItem: { item: i } }\n})"
+      }
+    },
+    {
+      "id": "w4",
+      "name": "Save as a spreadsheet",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "operation": "csv",
+        "options": {
+          "fileName": "brands.csv"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per website": {
+      "main": [
+        [
+          {
+            "node": "Get the brand kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the brand kit": {
+      "main": [
+        [
+          {
+            "node": "One row per website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One row per website": {
+      "main": [
+        [
+          {
+            "node": "Save as a spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
