@@ -2,40 +2,69 @@
   "name": "Turn a website section into an Elementor template with MiroMiro",
   "nodes": [
     {
-      "id": "b",
-      "name": "Note b",
+      "id": "note",
+      "name": "About this workflow",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        180,
-        -200
+        -460,
+        -120
       ],
       "parameters": {
-        "width": 1100,
-        "height": 380,
-        "content": "## Turn a website section into an Elementor template\nPick the URL and the **Section** (hero, pricing, footer...) in the MiroMiro node (25 credits). Download the .json from **Save as .json** and import it in WordPress: *Templates > Saved Templates > Import*.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open the MiroMiro node > Credential > Create new, paste the key.\n3. Click **Execute workflow**.",
-        "color": 6
+        "content": "## Turn a website section into an Elementor template\nPick a website and a section in **Settings**: `hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`.\n\nDownload the .json from **Save the template**, then in WordPress: *Templates > Saved Templates > Import Templates*. 25 credits.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 300,
+        "width": 760,
+        "color": 7
       }
     },
     {
-      "id": "t",
+      "id": "run",
       "name": "Run",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        60
+        -420,
+        300
       ],
       "parameters": {}
     },
     {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://stripe.com",
+              "type": "string"
+            },
+            {
+              "id": "s1",
+              "name": "section",
+              "value": "hero",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
       "id": "b1",
-      "name": "Turn the hero into Elementor",
+      "name": "Turn the section into Elementor",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        240,
-        60
+        20,
+        300
       ],
       "credentials": {
         "miroMiroApi": {
@@ -46,26 +75,26 @@
       "parameters": {
         "resource": "website",
         "operation": "code",
-        "url": "https://stripe.com",
+        "url": "={{ $json.website }}",
         "framework": "elementor",
-        "section": "hero",
+        "section": "={{ $json.section }}",
         "codeOptions": {}
       }
     },
     {
       "id": "b2",
-      "name": "Save the template as .json",
+      "name": "Save the template",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        480,
-        60
+        240,
+        300
       ],
       "parameters": {
         "operation": "toText",
         "sourceProperty": "code",
         "options": {
-          "fileName": "={{ String($json.url || 'website').split('/')[2].replace(/^www./, '') }}-elementor.json"
+          "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-{{ $('Settings').first().json.section }}-elementor.json"
         }
       }
     }
@@ -75,18 +104,29 @@
       "main": [
         [
           {
-            "node": "Turn the hero into Elementor",
+            "node": "Settings",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn the hero into Elementor": {
+    "Settings": {
       "main": [
         [
           {
-            "node": "Save the template as .json",
+            "node": "Turn the section into Elementor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the section into Elementor": {
+      "main": [
+        [
+          {
+            "node": "Save the template",
             "type": "main",
             "index": 0
           }

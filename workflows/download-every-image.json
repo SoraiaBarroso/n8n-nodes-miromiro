@@ -1,32 +1,55 @@
 {
-  "name": "Download every image from a website with MiroMiro",
+  "name": "Download every image from a website (zip) with MiroMiro",
   "nodes": [
     {
-      "id": "a",
-      "name": "Note a",
+      "id": "note",
+      "name": "About this workflow",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        180,
-        -200
+        -460,
+        -120
       ],
       "parameters": {
-        "width": 1100,
-        "height": 380,
-        "content": "## Download every image from a website\nMiroMiro finds every image on the page, then n8n downloads them and zips them into one file. Change the URL in **Extract Images** (1 credit). The zip is on **Zip them** > Binary > Download.\n\nWant more? Turn on **Render** in Extract Images for images that only load on scroll.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open the MiroMiro node > Credential > Create new, paste the key.\n3. Click **Execute workflow**.",
-        "color": 4
+        "content": "## Download every image from a website\nMiroMiro finds every image on the page (photos, backgrounds, logos, `og:image`), n8n downloads each one and zips them into one file.\n\nThe zip is on **Zip the images** > Binary > Download. 1 credit per page.\n\nImages that only load when you scroll? Open **List the images on the page** > Add option > **Render**.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 300,
+        "width": 760,
+        "color": 7
       }
     },
     {
-      "id": "t",
+      "id": "run",
       "name": "Run",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        60
+        -420,
+        300
       ],
       "parameters": {}
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://www.allbirds.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
     },
     {
       "id": "a1",
@@ -34,8 +57,8 @@
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        240,
-        60
+        20,
+        300
       ],
       "credentials": {
         "miroMiroApi": {
@@ -46,7 +69,7 @@
       "parameters": {
         "resource": "website",
         "operation": "images",
-        "url": "https://www.allbirds.com",
+        "url": "={{ $json.website }}",
         "options": {}
       }
     },
@@ -56,11 +79,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        480,
-        60
+        240,
+        300
       ],
       "parameters": {
-        "jsCode": "// MiroMiro returns every image URL on the page. Keep the first 40.\nreturn ($input.first().json.images || []).slice(0, 40).map((img, i) => ({ json: { url: img.url || img.src || img }, pairedItem: { item: 0 } }))"
+        "jsCode": "// One item per image URL.\nreturn ($input.first().json.images || []).map(img => ({ json: { url: img.url || img.src || img }, pairedItem: { item: 0 } }))"
       }
     },
     {
@@ -69,8 +92,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        720,
-        60
+        460,
+        300
       ],
       "onError": "continueRegularOutput",
       "parameters": {
@@ -90,11 +113,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        60
+        680,
+        300
       ],
       "parameters": {
-        "jsCode": "// Put every downloaded image on one item so they land in one zip.\nconst binary = {}\n$input.all().forEach((item, i) => { if (item.binary?.data) binary['image_' + String(i + 1).padStart(2, '0')] = item.binary.data })\nreturn [{ json: { images: Object.keys(binary).length }, binary, pairedItem: { item: 0 } }]"
+        "jsCode": "// Every downloaded image on one item, so they land in one zip.\nconst binary = {}\n$input.all().forEach((item, i) => { if (item.binary?.data) binary['image_' + String(i + 1).padStart(3, '0')] = item.binary.data })\nreturn [{ json: { images: Object.keys(binary).length }, binary, pairedItem: { item: 0 } }]"
       }
     },
     {
@@ -103,20 +126,31 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        1180,
-        60
+        900,
+        300
       ],
       "parameters": {
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('List the images on the page').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip",
+        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-images.zip",
         "binaryPropertyOutput": "data"
       }
     }
   ],
   "connections": {
     "Run": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
       "main": [
         [
           {

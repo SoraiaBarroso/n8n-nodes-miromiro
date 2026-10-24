@@ -1,0 +1,220 @@
+{
+  "name": "Rebuild a whole page in Elementor (one importable page template) with MiroMiro",
+  "nodes": [
+    {
+      "id": "note",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -120
+      ],
+      "parameters": {
+        "content": "## Rebuild a whole page in Elementor\nMiroMiro rebuilds every section of the page as Elementor, then n8n joins them, in page order, into **one page template**.\n\nDownload the .json from **Save the page template**, then in WordPress: *Templates > Saved Templates > Import Templates*, and insert it into any page.\n\n25 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 320,
+        "width": 760,
+        "color": 7
+      }
+    },
+    {
+      "id": "run",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://stripe.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e1",
+      "name": "Turn the hero into Elementor",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        20,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.website }}",
+        "framework": "elementor",
+        "section": "hero",
+        "codeOptions": {}
+      }
+    },
+    {
+      "id": "e2",
+      "name": "Split: one item per section",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// The first result is the hero, and it lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Settings').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order }, pairedItem: { item: 0 } }))"
+      }
+    },
+    {
+      "id": "e3",
+      "name": "Turn each section into Elementor",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.url }}",
+        "framework": "elementor",
+        "section": "hero",
+        "codeOptions": {
+          "selector": "={{ $json.selector }}"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "e4",
+      "name": "Join into one page template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Hero plus every section, sorted by where they sit on the page.\nconst hero = $('Turn the hero into Elementor').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst all = [hero, ...$input.all().map(i => i.json)].filter(r => r.code)\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\n// Every section is its own Elementor template; their content goes into one page, in order.\nconst content = []\nfor (const r of all) {\n  try { content.push(...JSON.parse(r.code).content) } catch (e) {}\n}\nconst host = String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '')\nconst template = { content, page_settings: [], version: '0.4', title: 'MiroMiro - ' + host + ' page', type: 'page' }\nreturn [{ json: { sections: content.length, template: JSON.stringify(template) }, pairedItem: { item: 0 } }]"
+      }
+    },
+    {
+      "id": "e5",
+      "name": "Save the page template",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "template",
+        "options": {
+          "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-elementor-page.json"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Turn the hero into Elementor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the hero into Elementor": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per section",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per section": {
+      "main": [
+        [
+          {
+            "node": "Turn each section into Elementor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn each section into Elementor": {
+      "main": [
+        [
+          {
+            "node": "Join into one page template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join into one page template": {
+      "main": [
+        [
+          {
+            "node": "Save the page template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

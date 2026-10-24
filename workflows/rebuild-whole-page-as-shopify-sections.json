@@ -1,0 +1,220 @@
+{
+  "name": "Rebuild a whole page as Shopify theme sections with MiroMiro",
+  "nodes": [
+    {
+      "id": "note",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -120
+      ],
+      "parameters": {
+        "content": "## Rebuild a whole page as Shopify sections\nMiroMiro rebuilds every section of the page as a Shopify Online Store 2.0 section (`.liquid`), and n8n zips them.\n\nIn Shopify: *Online Store > Themes > Edit code > sections*, add each file, then add the sections to a page in the theme editor.\n\n25 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 320,
+        "width": 760,
+        "color": 7
+      }
+    },
+    {
+      "id": "run",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://www.allbirds.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "s1",
+      "name": "Turn the hero into Shopify",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        20,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.website }}",
+        "framework": "shopify",
+        "section": "hero",
+        "codeOptions": {}
+      }
+    },
+    {
+      "id": "s2",
+      "name": "Split: one item per section",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// The first result is the hero, and it lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Settings').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order }, pairedItem: { item: 0 } }))"
+      }
+    },
+    {
+      "id": "s3",
+      "name": "Turn each section into Shopify",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.url }}",
+        "framework": "shopify",
+        "section": "hero",
+        "codeOptions": {
+          "selector": "={{ $json.selector }}"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "s4",
+      "name": "Save each section as a .liquid file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Hero plus every section, sorted by where they sit on the page.\nconst hero = $('Turn the hero into Shopify').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst all = [hero, ...$input.all().map(i => i.json)].filter(r => r.code)\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst host = String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '').replace(/[^a-z0-9]+/gi, '-')\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = 'miromiro-' + host + '-' + String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector) + '.liquid'\n  binary['file_' + i] = { data: Buffer.from(r.code).toString('base64'), mimeType: 'text/plain', fileName: name, fileExtension: 'liquid' }\n})\nreturn [{ json: { sections: all.length }, binary, pairedItem: { item: 0 } }]"
+      }
+    },
+    {
+      "id": "s5",
+      "name": "Zip the sections",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
+        "outputFormat": "zip",
+        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-shopify-sections.zip",
+        "binaryPropertyOutput": "data"
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Turn the hero into Shopify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the hero into Shopify": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per section",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per section": {
+      "main": [
+        [
+          {
+            "node": "Turn each section into Shopify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn each section into Shopify": {
+      "main": [
+        [
+          {
+            "node": "Save each section as a .liquid file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save each section as a .liquid file": {
+      "main": [
+        [
+          {
+            "node": "Zip the sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

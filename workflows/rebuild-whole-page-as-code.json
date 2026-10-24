@@ -1,41 +1,70 @@
 {
-  "name": "Rebuild a whole page as code with MiroMiro",
+  "name": "Rebuild a whole page as code (Tailwind, React, HTML or Vue) with MiroMiro",
   "nodes": [
     {
-      "id": "c",
-      "name": "Note c",
+      "id": "note",
+      "name": "About this workflow",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        180,
-        -200
+        -460,
+        -120
       ],
       "parameters": {
-        "width": 1100,
-        "height": 380,
-        "content": "## Rebuild a whole page as code\nSet the URL and the output (Tailwind, React, HTML or Vue) in **Read the page** and **Rebuild each section**. MiroMiro rebuilds every section in a real browser; open **pagePreviewUrl** on the last node to see the whole page assembled, with a Download HTML button. 25 credits per section; repeat calls within 24h are free.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open the MiroMiro node > Credential > Create new, paste the key.\n3. Click **Execute workflow**.",
-        "color": 5
+        "content": "## Rebuild a whole page as code\nMiroMiro rebuilds every section of the page in a real browser: header, hero, features, pricing, footer...\n\nYou get **one file per section in a zip** (on **Zip the code**) and a link to **the whole page assembled** (on **Get the whole-page link**), with a Download HTML button.\n\nIn **Settings**, `output` is `tailwind`, `jsx` (React), `html` or `vue`. 25 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "height": 340,
+        "width": 760,
+        "color": 7
       }
     },
     {
-      "id": "t",
+      "id": "run",
       "name": "Run",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        60
+        -420,
+        300
       ],
       "parameters": {}
     },
     {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://linear.app",
+              "type": "string"
+            },
+            {
+              "id": "s1",
+              "name": "output",
+              "value": "tailwind",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
       "id": "c1",
-      "name": "Turn the hero into code + find sections",
+      "name": "Turn the hero into code",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        240,
-        60
+        20,
+        300
       ],
       "credentials": {
         "miroMiroApi": {
@@ -46,8 +75,8 @@
       "parameters": {
         "resource": "website",
         "operation": "code",
-        "url": "https://linear.app",
-        "framework": "tailwind",
+        "url": "={{ $json.website }}",
+        "framework": "={{ $json.output }}",
         "section": "hero",
         "codeOptions": {}
       }
@@ -58,11 +87,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        480,
-        60
+        240,
+        300
       ],
       "parameters": {
-        "jsCode": "// The first result lists every other section on the page, with a ready selector.\nconst first = $input.first().json\nreturn (first.sections || []).filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order).slice(0, 12)\n  .map(s => ({ json: { url: first.url || 'https://linear.app', selector: s.selector, section: s.label }, pairedItem: { item: 0 } }))"
+        "jsCode": "// The first result is the hero, and it lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Settings').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order, output: settings.output }, pairedItem: { item: 0 } }))"
       }
     },
     {
@@ -71,8 +100,8 @@
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        720,
-        60
+        460,
+        300
       ],
       "credentials": {
         "miroMiroApi": {
@@ -84,7 +113,7 @@
         "resource": "website",
         "operation": "code",
         "url": "={{ $json.url }}",
-        "framework": "tailwind",
+        "framework": "={{ $json.output }}",
         "section": "hero",
         "codeOptions": {
           "selector": "={{ $json.selector }}"
@@ -94,15 +123,45 @@
     },
     {
       "id": "c4",
+      "name": "Save each section as a file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Hero plus every section, sorted by where they sit on the page.\nconst hero = $('Turn the hero into code').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst all = [hero, ...$input.all().map(i => i.json)].filter(r => r.code)\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst output = $('Settings').first().json.output\nconst ext = { tailwind: 'html', html: 'html', jsx: 'jsx', vue: 'vue' }[output] || 'txt'\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector)\n  const text = r.css && ext === 'html' ? '<style>\\n' + r.css + '\\n</style>\\n' + r.code : r.code\n  binary['file_' + i] = { data: Buffer.from(text).toString('base64'), mimeType: 'text/plain', fileName: name + '.' + ext, fileExtension: ext }\n})\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { sections: all.length, pagePreviewUrl: page }, binary, pairedItem: { item: 0 } }]"
+      }
+    },
+    {
+      "id": "c5",
+      "name": "Zip the code",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
+        "outputFormat": "zip",
+        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-code.zip",
+        "binaryPropertyOutput": "data"
+      }
+    },
+    {
+      "id": "c6",
       "name": "Get the whole-page link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        60
+        1120,
+        300
       ],
       "parameters": {
-        "jsCode": "// Each section files itself under the page; the newest link has them all.\nconst all = [...$('Turn the hero into code + find sections').all(), ...$input.all()].map(i => i.json)\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { pagePreviewUrl: page, sections: all.filter(r => r.code).length }, pairedItem: { item: 0 } }]"
+        "jsCode": "// The whole page, every section assembled, with a Download HTML button.\nreturn [{ json: { pagePreviewUrl: $('Save each section as a file').first().json.pagePreviewUrl, sections: $('Save each section as a file').first().json.sections }, pairedItem: { item: 0 } }]"
       }
     }
   ],
@@ -111,14 +170,25 @@
       "main": [
         [
           {
-            "node": "Turn the hero into code + find sections",
+            "node": "Settings",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn the hero into code + find sections": {
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Turn the hero into code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn the hero into code": {
       "main": [
         [
           {
@@ -141,6 +211,28 @@
       ]
     },
     "Turn each section into code": {
+      "main": [
+        [
+          {
+            "node": "Save each section as a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save each section as a file": {
+      "main": [
+        [
+          {
+            "node": "Zip the code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zip the code": {
       "main": [
         [
           {

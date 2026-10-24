@@ -62,18 +62,39 @@ Both arrive as one styled block with responsive and hover styles included, edite
 
 ## Templates
 
-Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Import from File*):
+Ready-made workflows in [`workflows/`](workflows). Every one was run end to end before it was published.
 
-* **[Download every image from a website](workflows/download-every-image.json):** every image on the page, downloaded and zipped into one file.
-* **[Turn a website section into an Elementor template](workflows/section-to-elementor.json):** pick a URL and a section, download the `.json`, import it in WordPress.
-* **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json):** every section of a page rebuilt as Tailwind, React, HTML or Vue, assembled into one page you can open and download.
-* **[All in one: the MiroMiro showcase](workflows/miromiro-showcase.json):** the three workflows above side by side, plus MiroMiro as an AI agent tool.
-* **[Rebuild any website (form)](workflows/rebuild-any-website-form.json):** paste a URL into a form, pick Tailwind, React, HTML or Vue, and the browser opens the whole page rebuilt section by section, with a Download HTML button.
+**Import one:** in n8n, open the **⋯** menu (top right of a workflow) > **Import from URL** and paste the template's raw link, for example:
+
+```
+https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/workflows/download-every-image.json
+```
+
+Or download the `.json` and use **Import from File**. Then open any MiroMiro node, create the credential with your [free API key](https://miromiro.app/api/onboarding) (300 credits a month, no card), change the website in **Settings**, and click **Execute workflow**.
+
+### Start here
+
+| Template | What you get | Credits |
+|---|---|---|
+| **[Download every image from a website](workflows/download-every-image.json)** | Every image on the page (photos, backgrounds, logos, `og:image`) in one `.zip` | 1 |
+| **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json)** | Every section as Tailwind, React (JSX), HTML or Vue, one file per section in a `.zip`, plus a link to the whole page assembled with a Download HTML button | 25 per section |
+| **[Rebuild a whole page in Elementor](workflows/rebuild-whole-page-in-elementor.json)** | Every section joined, in page order, into **one Elementor page template** to import into WordPress | 25 per section |
+| **[Turn a website section into an Elementor template](workflows/section-to-elementor.json)** | One section (hero, pricing, footer...) as an importable Elementor `.json` | 25 |
+| **[Rebuild a whole page as Shopify sections](workflows/rebuild-whole-page-as-shopify-sections.json)** | Every section as a Shopify Online Store 2.0 section (`.liquid`), zipped, ready for *Edit code > sections* | 25 per section |
+
+Identical calls within 24 hours are free, so re-running a template while you try it costs nothing.
+
+### More workflows
+
+* **[The MiroMiro showcase](workflows/miromiro-showcase.json):** images, Elementor and whole page side by side, plus MiroMiro as an AI agent tool, in one workflow.
+* **[Rebuild any website (form)](workflows/rebuild-any-website-form.json):** paste a URL into a form, pick Tailwind, React, HTML or Vue, and the browser opens the whole page rebuilt section by section.
 * **[AI agent that rebuilds websites](workflows/ai-agent-rebuild-websites.json):** a chat agent with MiroMiro as its tools: "turn the hero of linear.app into a React component", "what are airbnb.com's brand colors?". Works with any chat model.
-* **[Rebuild website sections as Elementor templates](workflows/rebuild-website-in-elementor.json):** a list of pages and sections in, importable Elementor `.json` files out.
+* **[Rebuild many sections as Elementor templates](workflows/rebuild-website-in-elementor.json):** a list of pages and sections in, one importable Elementor `.json` per section out.
 * **[Rebuild a website section in your Shopify theme](workflows/rebuild-section-in-shopify.json):** extracts a section as Liquid and uploads it straight into your theme through the Shopify Admin API.
 * **[Brand board from any website](workflows/brand-board.json):** open `/webhook/brand-board?url=stripe.com` in a browser and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is.
 * **[Migrate a site to Next.js](workflows/migrate-site-to-nextjs.json):** rebuilds the pages of a WordPress/Elementor, Shopify or any other live site as a Next.js + Tailwind project, every section in page order, and zips it. `npm install`, `npm run dev`.
+
+**What to expect:** sections come back styled like the original (colors, fonts, spacing, responsive and hover styles), rebuilt from what a real browser shows. Content that only appears after interaction (carousels, tabs) may come back as its first state. Respect the sites you extract from: check their terms before reusing content commercially.
 
 ## Resources
 
