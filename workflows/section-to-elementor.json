@@ -1,0 +1,100 @@
+{
+  "name": "Turn a website section into an Elementor template with MiroMiro",
+  "nodes": [
+    {
+      "id": "b",
+      "name": "Note b",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -200
+      ],
+      "parameters": {
+        "width": 1100,
+        "height": 380,
+        "content": "## Turn a website section into an Elementor template\nPick the URL and the **Section** (hero, pricing, footer...) in the MiroMiro node (25 credits). Download the .json from **Save as .json** and import it in WordPress: *Templates > Saved Templates > Import*.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open the MiroMiro node > Credential > Create new, paste the key.\n3. Click **Execute workflow**.",
+        "color": 6
+      }
+    },
+    {
+      "id": "t",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        60
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "b1",
+      "name": "Extract as Elementor",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        60
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "https://stripe.com",
+        "framework": "elementor",
+        "section": "hero",
+        "codeOptions": {}
+      }
+    },
+    {
+      "id": "b2",
+      "name": "Save as .json",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        60
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "code",
+        "options": {
+          "fileName": "={{ String($json.url || 'website').split('/')[2].replace(/^www./, '') }}-elementor.json"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "Extract as Elementor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract as Elementor": {
+      "main": [
+        [
+          {
+            "node": "Save as .json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -110,7 +110,7 @@
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "allbirds-images.zip",
+        "fileName": "={{ String($('Extract Images').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip",
         "binaryPropertyOutput": "data"
       }
     },
@@ -167,7 +167,7 @@
         "operation": "toText",
         "sourceProperty": "code",
         "options": {
-          "fileName": "stripe-hero-elementor.json"
+          "fileName": "={{ String($json.url || 'website').split('/')[2].replace(/^www./, '') }}-elementor.json"
         }
       }
     },

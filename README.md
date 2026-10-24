@@ -64,7 +64,10 @@ Both arrive as one styled block with responsive and hover styles included, edite
 
 Ready-made workflows in [`workflows/`](workflows) (import them in n8n with *Import from File*):
 
-* **[Three use cases in one run](workflows/showcase-three-use-cases.json):** every image on a page downloaded into one `.zip`, a section turned into an Elementor template, and a whole page rebuilt as code, side by side.
+* **[Download every image from a website](workflows/download-every-image.json):** every image on the page, downloaded and zipped into one file.
+* **[Turn a website section into an Elementor template](workflows/section-to-elementor.json):** pick a URL and a section, download the `.json`, import it in WordPress.
+* **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json):** every section of a page rebuilt as Tailwind, React, HTML or Vue, assembled into one page you can open and download.
+* **[All three in one run](workflows/showcase-three-use-cases.json):** the three workflows above side by side.
 * **[Rebuild any website (form)](workflows/rebuild-any-website-form.json):** paste a URL into a form, pick Tailwind, React, HTML or Vue, and the browser opens the whole page rebuilt section by section, with a Download HTML button.
 * **[AI agent that rebuilds websites](workflows/ai-agent-rebuild-websites.json):** a chat agent with MiroMiro as its tools: "turn the hero of linear.app into a React component", "what are airbnb.com's brand colors?". Works with any chat model.
 * **[Rebuild website sections as Elementor templates](workflows/rebuild-website-in-elementor.json):** a list of pages and sections in, importable Elementor `.json` files out.

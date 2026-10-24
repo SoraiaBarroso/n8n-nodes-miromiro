@@ -1,0 +1,178 @@
+{
+  "name": "Download every image from a website with MiroMiro",
+  "nodes": [
+    {
+      "id": "a",
+      "name": "Note a",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -200
+      ],
+      "parameters": {
+        "width": 1100,
+        "height": 380,
+        "content": "## Download every image from a website\nMiroMiro finds every image on the page, then n8n downloads them and zips them into one file. Change the URL in **Extract Images** (1 credit). The zip is on **Zip them** > Binary > Download.\n\nWant more? Turn on **Render** in Extract Images for images that only load on scroll.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open the MiroMiro node > Credential > Create new, paste the key.\n3. Click **Execute workflow**.",
+        "color": 4
+      }
+    },
+    {
+      "id": "t",
+      "name": "Run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        60
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "a1",
+      "name": "Extract Images",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        240,
+        60
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "images",
+        "url": "https://www.allbirds.com",
+        "options": {}
+      }
+    },
+    {
+      "id": "a2",
+      "name": "One item per image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        60
+      ],
+      "parameters": {
+        "jsCode": "// MiroMiro returns every image URL on the page. Keep the first 40.\nreturn ($input.first().json.images || []).slice(0, 40).map((img, i) => ({ json: { url: img.url || img.src || img }, pairedItem: { item: 0 } }))"
+      }
+    },
+    {
+      "id": "a3",
+      "name": "Download image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        60
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "a4",
+      "name": "Collect files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        60
+      ],
+      "parameters": {
+        "jsCode": "// Put every downloaded image on one item so they land in one zip.\nconst binary = {}\n$input.all().forEach((item, i) => { if (item.binary?.data) binary['image_' + String(i + 1).padStart(2, '0')] = item.binary.data })\nreturn [{ json: { images: Object.keys(binary).length }, binary, pairedItem: { item: 0 } }]"
+      }
+    },
+    {
+      "id": "a5",
+      "name": "Zip them",
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        1180,
+        60
+      ],
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
+        "outputFormat": "zip",
+        "fileName": "={{ String($('Extract Images').first().json.url || 'website').split('/')[2].replace(/^www./, '') }}-images.zip",
+        "binaryPropertyOutput": "data"
+      }
+    }
+  ],
+  "connections": {
+    "Run": {
+      "main": [
+        [
+          {
+            "node": "Extract Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Images": {
+      "main": [
+        [
+          {
+            "node": "One item per image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item per image": {
+      "main": [
+        [
+          {
+            "node": "Download image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download image": {
+      "main": [
+        [
+          {
+            "node": "Collect files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect files": {
+      "main": [
+        [
+          {
+            "node": "Zip them",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
