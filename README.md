@@ -2,11 +2,19 @@
 
 This is an n8n community node for [MiroMiro](https://miromiro.app/api). It turns any live website into something you can build with: a section as an **Elementor template** for WordPress, a **Shopify section** (Liquid), or **Tailwind, HTML/CSS, React or Vue** code, plus the site's **brand colors, fonts, design tokens** and **assets** (images, SVGs, fonts, videos, audio, Lottie).
 
-Use it to rebuild a client's old site in Elementor or Shopify section by section, match a brand, or collect a site's assets, all inside an n8n workflow.
+**What you can do with it, each one a ready-made [template](#templates) you import in one click:**
+
+* Download every image from a website into one zip
+* Rebuild a whole page as code (Tailwind, React, HTML or Vue)
+* Rebuild a whole page in Elementor, as one template to import into WordPress
+* Rebuild a whole page as Shopify theme sections
+* Get any website's brand kit as files: logo, CSS variables, design tokens
+* Compare the brands of many websites in one spreadsheet
+* Give your AI agent MiroMiro as a tool: "turn linear.app's hero into React"
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
-[Installation](#installation) · [Operations](#operations) · [Credentials](#credentials) · [Compatibility](#compatibility) · [Usage](#usage) · [Resources](#resources)
+[Installation](#installation) · [Templates](#templates) · [Operations](#operations) · [Credentials](#credentials) · [Usage](#usage) · [Compatibility](#compatibility) · [Resources](#resources)
 
 ## Installation
 
@@ -19,7 +27,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | Operation | What it returns | Credits |
 |---|---|---|
 | Extract Code | One section of the page as Tailwind, HTML + CSS, React, Vue, an Elementor template (`.json`) or a Shopify section (`.liquid`) | 25 |
-| Extract Brand | Brand colors with roles, fonts, logo, and whether each was declared by the site or inferred | 15 |
+| Extract Brand | Brand colors with roles, fonts, logo, and whether each was declared by the site or inferred | 10 |
 | Extract Design Tokens | Every color, font, size, radius and shadow with usage counts, or a W3C Design Tokens (DTCG) file | 10 |
 | Extract Images | Every image URL on the page | 1 |
 | Extract SVGs | Inline SVG markup and SVG files | 1 |
@@ -81,6 +89,10 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 | **[Rebuild a whole page in Elementor](workflows/rebuild-whole-page-in-elementor.json)** | Every section joined, in page order, into **one Elementor page template** to import into WordPress | 25 per section |
 | **[Turn a website section into an Elementor template](workflows/section-to-elementor.json)** | One section (hero, pricing, footer...) as an importable Elementor `.json` | 25 |
 | **[Rebuild a whole page as Shopify sections](workflows/rebuild-whole-page-as-shopify-sections.json)** | Every section as a Shopify Online Store 2.0 section (`.liquid`), zipped, ready for *Edit code > sections* | 25 per section |
+| **[Get any website's brand kit as files](workflows/brand-kit-files.json)** | A `.zip` with the logo, `brand.css` (colors and fonts as CSS variables), `tokens.json` (W3C Design Tokens for Figma, Style Dictionary or Tokens Studio) and a readable `brand.md` | 20 |
+| **[Compare the brands of many websites](workflows/compare-brands-csv.json)** | A list of websites in, one spreadsheet out: brand colors, fonts, logo and confidence per site, for competitor research or pitches | 10 per site |
+
+A whole page is usually 6 to 12 sections, so 150 to 300 credits. The free plan's 300 credits a month covers about one full page.
 
 Identical calls within 24 hours are free, so re-running a template while you try it costs nothing.
 
