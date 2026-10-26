@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Brand board from any website\n\nOpen the webhook URL in your browser with `?url=` and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is about each.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential.\n2. Activate the workflow.\n3. Open `<your n8n>/webhook/brand-board?url=stripe.com` in a browser.\n\nEach new site costs 15 credits; the same site again within 24 hours is free.",
+        "content": "## Brand board from any website\n\nOpen the webhook URL in your browser with `?url=` and get a designed brand board: logo, brand colors with their roles, the full palette, fonts, and how sure MiroMiro is about each.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential.\n2. Activate the workflow.\n3. Open `<your n8n>/webhook/brand-board?url=stripe.com` in a browser.\n\nEach new site costs 10 credits; the same site again within 24 hours is free.",
         "height": 400,
         "width": 420
       },

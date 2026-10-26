@@ -13,7 +13,7 @@
       "parameters": {
         "width": 1180,
         "height": 200,
-        "content": "## Rebuild any website in one click\nOpen the form (Rebuild a website > Test URL / Production URL), paste a page and pick the output. MiroMiro finds every section (header, hero, features, pricing, footer...), rebuilds each one as real code in a browser, and opens the whole page, assembled, with a Download HTML button.\n\nEach section costs 25 credits; identical calls within 24h are free.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key."
+        "content": "## Rebuild any website in one click\nOpen the form (Rebuild a website > Test URL / Production URL), paste a page and pick the output. MiroMiro finds every section (header, hero, features, pricing, footer...), rebuilds each one as real code in a browser, and opens the whole page, assembled, with a Download HTML button.\n\nEach section costs 10 credits; identical calls within 24h are free.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key."
       }
     },
     {

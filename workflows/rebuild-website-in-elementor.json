@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Rebuild website sections in Elementor\n\nTurns sections of any live website into Elementor templates you import into WordPress, styled like the original (colors, fonts, spacing, responsive and hover styles).\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding (300 credits a month, no card) and add it as a **MiroMiro API** credential.\n2. List the pages and sections in **Pages to rebuild**.\n3. Run it. Each item becomes a `.json` file: import it in WordPress under *Templates > Saved Templates > Import*.\n\nEach section costs 25 credits. Add a Google Drive, Dropbox or email node at the end to deliver the files.\n\nThe text and images belong to the source site: replace them with your own unless it is your site.",
+        "content": "## Rebuild website sections in Elementor\n\nTurns sections of any live website into Elementor templates you import into WordPress, styled like the original (colors, fonts, spacing, responsive and hover styles).\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding (300 credits a month, no card) and add it as a **MiroMiro API** credential.\n2. List the pages and sections in **Pages to rebuild**.\n3. Run it. Each item becomes a `.json` file: import it in WordPress under *Templates > Saved Templates > Import*.\n\nEach section costs 10 credits. Add a Google Drive, Dropbox or email node at the end to deliver the files.\n\nThe text and images belong to the source site: replace them with your own unless it is your site.",
         "height": 420,
         "width": 420
       },

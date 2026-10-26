@@ -11,7 +11,7 @@
         -120
       ],
       "parameters": {
-        "content": "## Rebuild a whole page in Elementor\nMiroMiro rebuilds every section of the page as Elementor, then n8n joins them, in page order, into **one page template**.\n\nDownload the .json from **Save the page template**, then in WordPress: *Templates > Saved Templates > Import Templates*, and insert it into any page.\n\n25 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "content": "## Rebuild a whole page in Elementor\nMiroMiro rebuilds every section of the page as Elementor, then n8n joins them, in page order, into **one page template**.\n\nDownload the .json from **Save the page template**, then in WordPress: *Templates > Saved Templates > Import Templates*, and insert it into any page.\n\n10 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
         "height": 320,
         "width": 760,
         "color": 7

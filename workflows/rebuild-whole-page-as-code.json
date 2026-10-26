@@ -11,7 +11,7 @@
         -120
       ],
       "parameters": {
-        "content": "## Rebuild a whole page as code\nMiroMiro rebuilds every section of the page in a real browser: header, hero, features, pricing, footer...\n\nYou get **one file per section in a zip** (on **Zip the code**) and a link to **the whole page assembled** (on **Get the whole-page link**), with a Download HTML button.\n\nIn **Settings**, `output` is `tailwind`, `jsx` (React), `html` or `vue`. 25 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "content": "## Rebuild a whole page as code\nMiroMiro rebuilds every section of the page in a real browser: header, hero, features, pricing, footer...\n\nYou get **one file per section in a zip** (on **Zip the code**) and a link to **the whole page assembled** (on **Get the whole-page link**), with a Download HTML button.\n\nIn **Settings**, `output` is `tailwind`, `jsx` (React), `html` or `vue`. 10 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
         "height": 340,
         "width": 760,
         "color": 7

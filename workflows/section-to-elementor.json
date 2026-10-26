@@ -11,7 +11,7 @@
         -120
       ],
       "parameters": {
-        "content": "## Turn a website section into an Elementor template\nPick a website and a section in **Settings**: `hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`.\n\nDownload the .json from **Save the template**, then in WordPress: *Templates > Saved Templates > Import Templates*. 25 credits.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
+        "content": "## Turn a website section into an Elementor template\nPick a website and a section in **Settings**: `hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`.\n\nDownload the .json from **Save the template**, then in WordPress: *Templates > Saved Templates > Import Templates*. 10 credits.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
         "height": 300,
         "width": 760,
         "color": 7

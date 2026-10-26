@@ -26,7 +26,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 | Operation | What it returns | Credits |
 |---|---|---|
-| Extract Code | One section of the page as Tailwind, HTML + CSS, React, Vue, an Elementor template (`.json`) or a Shopify section (`.liquid`) | 25 |
+| Extract Code | One section of the page as Tailwind, HTML + CSS, React, Vue, an Elementor template (`.json`) or a Shopify section (`.liquid`) | 10 |
 | Extract Brand | Brand colors with roles, fonts, logo, and whether each was declared by the site or inferred | 10 |
 | Extract Design Tokens | Every color, font, size, radius and shadow with usage counts, or a W3C Design Tokens (DTCG) file | 10 |
 | Extract Images | Every image URL on the page | 1 |
@@ -85,14 +85,14 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 | Template | What you get | Credits |
 |---|---|---|
 | **[Download every image from a website](workflows/download-every-image.json)** | Every image on the page (photos, backgrounds, logos, `og:image`) in one `.zip` | 1 |
-| **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json)** | Every section as Tailwind, React (JSX), HTML or Vue, one file per section in a `.zip`, plus a link to the whole page assembled with a Download HTML button | 25 per section |
-| **[Rebuild a whole page in Elementor](workflows/rebuild-whole-page-in-elementor.json)** | Every section joined, in page order, into **one Elementor page template** to import into WordPress | 25 per section |
-| **[Turn a website section into an Elementor template](workflows/section-to-elementor.json)** | One section (hero, pricing, footer...) as an importable Elementor `.json` | 25 |
-| **[Rebuild a whole page as Shopify sections](workflows/rebuild-whole-page-as-shopify-sections.json)** | Every section as a Shopify Online Store 2.0 section (`.liquid`), zipped, ready for *Edit code > sections* | 25 per section |
+| **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json)** | Every section as Tailwind, React (JSX), HTML or Vue, one file per section in a `.zip`, plus a link to the whole page assembled with a Download HTML button | 10 per section |
+| **[Rebuild a whole page in Elementor](workflows/rebuild-whole-page-in-elementor.json)** | Every section joined, in page order, into **one Elementor page template** to import into WordPress | 10 per section |
+| **[Turn a website section into an Elementor template](workflows/section-to-elementor.json)** | One section (hero, pricing, footer...) as an importable Elementor `.json` | 10 |
+| **[Rebuild a whole page as Shopify sections](workflows/rebuild-whole-page-as-shopify-sections.json)** | Every section as a Shopify Online Store 2.0 section (`.liquid`), zipped, ready for *Edit code > sections* | 10 per section |
 | **[Get any website's brand kit as files](workflows/brand-kit-files.json)** | A `.zip` with the logo, `brand.css` (colors and fonts as CSS variables), `tokens.json` (W3C Design Tokens for Figma, Style Dictionary or Tokens Studio) and a readable `brand.md` | 20 |
 | **[Compare the brands of many websites](workflows/compare-brands-csv.json)** | A list of websites in, one spreadsheet out: brand colors, fonts, logo and confidence per site, for competitor research or pitches | 10 per site |
 
-A whole page is usually 6 to 12 sections, so 150 to 300 credits. The free plan's 300 credits a month covers about one full page.
+A whole page is usually 6 to 12 sections, so 60 to 120 credits. The free plan's 300 credits a month covers two to five full pages.
 
 Identical calls within 24 hours are free, so re-running a template while you try it costs nothing.
 
