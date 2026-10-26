@@ -116,6 +116,10 @@ Identical calls within 24 hours are free, so re-running a template while you try
 
 ## Version history
 
+### 0.1.4
+
+Credit costs in the node match the API: a section as code (Tailwind, HTML, React, Vue, Elementor or Shopify) is 10 credits, a brand kit 10.
+
 ### 0.1.3
 
 Clearer action names in the node picker (for example "Get the brand kit of a website").

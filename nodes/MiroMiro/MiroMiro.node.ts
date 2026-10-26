@@ -82,7 +82,7 @@ export class MiroMiro implements INodeType {
 						name: 'Extract Brand',
 						value: 'brand',
 						action: 'Get the brand kit of a website',
-						description: 'Brand colors with roles, fonts and logo (15 credits)',
+						description: 'Brand colors with roles, fonts and logo (10 credits)',
 						routing: { request: { method: 'GET', url: '/v1/brand' } },
 					},
 					{
@@ -90,7 +90,7 @@ export class MiroMiro implements INodeType {
 						value: 'code',
 						action: 'Turn a website section into code',
 						description:
-							'Turn a section of a live page into Tailwind, HTML, React or Vue, an Elementor template or a Shopify section (25 credits)',
+							'Turn a section of a live page into Tailwind, HTML, React or Vue, an Elementor template or a Shopify section (10 credits)',
 						routing: { request: { method: 'GET', url: '/v1/code' } },
 					},
 					{
