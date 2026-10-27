@@ -92,6 +92,10 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 | **[Get any website's brand kit as files](workflows/brand-kit-files.json)** | A `.zip` with the logo, `brand.css` (colors and fonts as CSS variables), `tokens.json` (W3C Design Tokens for Figma, Style Dictionary or Tokens Studio) and a readable `brand.md` | 20 |
 | **[Compare the brands of many websites](workflows/compare-brands-csv.json)** | A list of websites in, one spreadsheet out: brand colors, fonts, logo and confidence per site, for competitor research or pitches | 10 per site |
 
+**Download every image from a website**, as it looks in n8n:
+
+![The Download every image workflow in n8n: Settings, MiroMiro lists the images, each one is downloaded, and they are zipped](docs/templates/download-every-image.png)
+
 A whole page is usually 6 to 12 sections, so 60 to 120 credits. The free plan's 300 credits a month covers two to five full pages.
 
 Identical calls within 24 hours are free, so re-running a template while you try it costs nothing.
