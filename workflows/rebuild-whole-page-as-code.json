@@ -2,39 +2,39 @@
   "name": "Rebuild a whole page as code (Tailwind, React, HTML or Vue) with MiroMiro",
   "nodes": [
     {
-      "id": "note",
-      "name": "About this workflow",
+      "parameters": {
+        "content": "## Rebuild a whole page as code (Tailwind, React, HTML or Vue) with MiroMiro\n\n### How it works\nRebuild every section of a web page as code: Tailwind, React (JSX), HTML + CSS or Vue. **Extract Hero and Find Sections** loads the page from **Set Website and Output** in a real browser, rebuilds the hero and lists every other section. Each one is rebuilt by **Extract Each Section as Code** with its real colors, fonts, spacing, breakpoints and hover styles. You get one file per section in a zip, and **Get Whole-Page Preview Link** returns a link to the whole page assembled, with a Download HTML button. A section that fails is skipped and counted in `failed`. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Hero and Find Sections** > Credential > Create new, and paste the key.\n4. Select the same credential in **Extract Each Section as Code**.\n5. Set your page and `output` in **Set Website and Output** and click **Execute workflow**.\n6. Download the zip from **Zip the Code Files**; open `pagePreviewUrl` from **Get Whole-Page Preview Link**.\n\nEach section costs 10 credits, so a page of 6 to 12 sections is 60 to 120. The same page again within 24 hours is free.\n\n### Customization\nChange `.slice(0, 15)` in **List Remaining Sections** to rebuild fewer sections. Commit the files to GitHub or send the zip to Google Drive. Menus, sliders and forms come back as static markup in their first visible state.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/rebuild-whole-page-as-code.png)",
+        "width": 520,
+        "height": 1129,
+        "color": 1
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -460,
-        -120
+        -660,
+        100
       ],
-      "parameters": {
-        "content": "## Rebuild a whole page as code\nMiroMiro rebuilds every section of the page in a real browser: header, hero, features, pricing, footer...\n\nYou get **one file per section in a zip** (on **Zip the code**) and a link to **the whole page assembled** (on **Get the whole-page link**), with a Download HTML button.\n\nIn **Settings**, `output` is `tailwind`, `jsx` (React), `html` or `vue`. 10 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
-        "height": 340,
-        "width": 760,
-        "color": 7
-      }
+      "id": "c789927b-52c6-5b46-8fb8-972d37bec7c9",
+      "name": "Sticky Note"
     },
     {
       "id": "run",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -420,
+        0,
         300
       ],
       "parameters": {}
     },
     {
       "id": "settings",
-      "name": "Settings",
+      "name": "Set Website and Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -200,
+        240,
         300
       ],
       "parameters": {
@@ -59,19 +59,13 @@
     },
     {
       "id": "c1",
-      "name": "Turn the hero into code",
+      "name": "Extract Hero and Find Sections",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        20,
+        480,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "code",
@@ -83,32 +77,26 @@
     },
     {
       "id": "c2",
-      "name": "Split: one item per section",
+      "name": "List Remaining Sections",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
+        720,
         300
       ],
       "parameters": {
-        "jsCode": "// The first result is the hero, and it lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Settings').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order, output: settings.output }, pairedItem: { item: 0 } }))"
+        "jsCode": "// The first call returns the hero and lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Set Website and Output').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\n// A page with only a hero still finishes: the next node then repeats the\n// hero call, which is cached (free) and dropped as a duplicate later.\nif (!rest.length) return [{ json: { url: settings.website, output: settings.output }, pairedItem: { item: 0 } }]\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order, output: settings.output }, pairedItem: { item: 0 } }))"
       }
     },
     {
       "id": "c3",
-      "name": "Turn each section into code",
+      "name": "Extract Each Section as Code",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        460,
+        960,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "code",
@@ -116,127 +104,175 @@
         "framework": "={{ $json.output }}",
         "section": "hero",
         "codeOptions": {
-          "selector": "={{ $json.selector }}"
+          "selector": "={{ $json.selector || '' }}"
         }
       },
       "onError": "continueRegularOutput"
     },
     {
       "id": "c4",
-      "name": "Save each section as a file",
+      "name": "Save Each Section as a File",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        680,
+        1200,
         300
       ],
       "parameters": {
-        "jsCode": "// Hero plus every section, sorted by where they sit on the page.\nconst hero = $('Turn the hero into code').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst all = [hero, ...$input.all().map(i => i.json)].filter(r => r.code)\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst output = $('Settings').first().json.output\nconst ext = { tailwind: 'html', html: 'html', jsx: 'jsx', vue: 'vue' }[output] || 'txt'\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector)\n  const text = r.css && ext === 'html' ? '<style>\\n' + r.css + '\\n</style>\\n' + r.code : r.code\n  binary['file_' + i] = { data: Buffer.from(text).toString('base64'), mimeType: 'text/plain', fileName: name + '.' + ext, fileExtension: ext }\n})\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { sections: all.length, pagePreviewUrl: page }, binary, pairedItem: { item: 0 } }]"
+        "jsCode": "// Hero plus every section, sorted by where they sit on the page, duplicates dropped.\nconst hero = $('Extract Hero and Find Sections').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst results = $input.all().map(i => i.json)\nconst failed = results.filter(r => !r.code).length\nconst seen = new Set()\nconst all = [hero, ...results].filter(r => r.code && !seen.has(r.selector) && seen.add(r.selector))\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst output = $('Set Website and Output').first().json.output\nconst ext = { tailwind: 'html', html: 'html', jsx: 'jsx', vue: 'vue' }[output] || 'txt'\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector)\n  const text = r.css && ext === 'html' ? '<style>\\n' + r.css + '\\n</style>\\n' + r.code : r.code\n  binary['file_' + i] = { data: Buffer.from(text).toString('base64'), mimeType: 'text/plain', fileName: name + '.' + ext, fileExtension: ext }\n})\nconst page = all.filter(r => r.pagePreviewUrl).pop()?.pagePreviewUrl\nreturn [{ json: { sections: all.length, failed, pagePreviewUrl: page }, binary, pairedItem: { item: 0 } }]"
       }
     },
     {
       "id": "c5",
-      "name": "Zip the code",
+      "name": "Zip the Code Files",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        900,
+        1440,
         300
       ],
       "parameters": {
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-code.zip",
+        "fileName": "={{ String($('Set Website and Output').first().json.website).split('/')[2].replace(/^www\\./, '') }}-code.zip",
         "binaryPropertyOutput": "data"
       }
     },
     {
       "id": "c6",
-      "name": "Get the whole-page link",
+      "name": "Get Whole-Page Preview Link",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
+        1680,
         300
       ],
       "parameters": {
-        "jsCode": "// The whole page, every section assembled, with a Download HTML button.\nreturn [{ json: { pagePreviewUrl: $('Save each section as a file').first().json.pagePreviewUrl, sections: $('Save each section as a file').first().json.sections }, pairedItem: { item: 0 } }]"
+        "jsCode": "// The whole page, every section assembled, with a Download HTML button.\nconst saved = $('Save Each Section as a File').first().json\nreturn [{ json: { pagePreviewUrl: saved.pagePreviewUrl, sections: saved.sections, failed: saved.failed }, pairedItem: { item: 0 } }]"
       }
+    },
+    {
+      "parameters": {
+        "content": "## Choose the page\n\nPut the page and the output (`tailwind`, `jsx`, `html` or `vue`) in **Set Website and Output**.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "0daf2c07-af26-560a-a958-ecc20fb5f486",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Find the sections\n\nThe first call rebuilds the hero and lists every other section on the page, in order.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "d9d709a8-34ce-5d9d-9408-91668733bf31",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild, zip and link\n\nEach section becomes code, one file each in a zip. A failed section is skipped and counted. The last node gives the whole-page link.",
+        "width": 940,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        140
+      ],
+      "id": "310620a2-8f51-5d8d-a907-2fba4090282c",
+      "name": "Sticky Note3"
     }
   ],
   "connections": {
-    "Run": {
+    "Run Manually": {
       "main": [
         [
           {
-            "node": "Settings",
+            "node": "Set Website and Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Settings": {
+    "Set Website and Output": {
       "main": [
         [
           {
-            "node": "Turn the hero into code",
+            "node": "Extract Hero and Find Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn the hero into code": {
+    "Extract Hero and Find Sections": {
       "main": [
         [
           {
-            "node": "Split: one item per section",
+            "node": "List Remaining Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split: one item per section": {
+    "List Remaining Sections": {
       "main": [
         [
           {
-            "node": "Turn each section into code",
+            "node": "Extract Each Section as Code",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn each section into code": {
+    "Extract Each Section as Code": {
       "main": [
         [
           {
-            "node": "Save each section as a file",
+            "node": "Save Each Section as a File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Save each section as a file": {
+    "Save Each Section as a File": {
       "main": [
         [
           {
-            "node": "Zip the code",
+            "node": "Zip the Code Files",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Zip the code": {
+    "Zip the Code Files": {
       "main": [
         [
           {
-            "node": "Get the whole-page link",
+            "node": "Get Whole-Page Preview Link",
             "type": "main",
             "index": 0
           }

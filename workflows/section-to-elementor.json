@@ -2,39 +2,39 @@
   "name": "Turn a website section into an Elementor template with MiroMiro",
   "nodes": [
     {
-      "id": "note",
-      "name": "About this workflow",
+      "parameters": {
+        "content": "## Turn a website section into an Elementor template with MiroMiro\n\n### How it works\nTurn one section of any live website into an Elementor template you import into WordPress. **Set Website and Section** holds the page and the section: `hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`. **Extract Section as Elementor** loads the page in a real browser and rebuilds that section as one Elementor container with an HTML widget, styled like the original: colors, fonts, spacing, responsive and hover styles. **Save Elementor Template File** turns it into a .json file named after the site. If the section is not found, MiroMiro returns the hero and says so in `note`. If the page cannot be reached, the workflow stops with the reason. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Section as Elementor** > Credential > Create new, and paste the key.\n4. Set your page and section in **Set Website and Section** and click **Execute workflow**.\n5. Download the file from **Save Elementor Template File**. In WordPress: Templates > Saved Templates > Import Templates.\n\nEach section costs 10 credits. The same call again within 24 hours is free.\n\n### Customization\nFor a whole page in one template, use the \"Rebuild a whole page in Elementor\" template instead. Send the file to Google Drive or email instead of downloading it. The text and images belong to the source site: replace them unless it is your site or your client's.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/section-to-elementor.png)",
+        "width": 520,
+        "height": 1109,
+        "color": 1
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -460,
-        -120
+        -660,
+        100
       ],
-      "parameters": {
-        "content": "## Turn a website section into an Elementor template\nPick a website and a section in **Settings**: `hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`.\n\nDownload the .json from **Save the template**, then in WordPress: *Templates > Saved Templates > Import Templates*. 10 credits.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
-        "height": 300,
-        "width": 760,
-        "color": 7
-      }
+      "id": "374c8b22-73f7-5617-bb25-96cfd4dcc500",
+      "name": "Sticky Note"
     },
     {
       "id": "run",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -420,
+        0,
         300
       ],
       "parameters": {}
     },
     {
       "id": "settings",
-      "name": "Settings",
+      "name": "Set Website and Section",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -200,
+        240,
         300
       ],
       "parameters": {
@@ -59,19 +59,13 @@
     },
     {
       "id": "b1",
-      "name": "Turn the section into Elementor",
+      "name": "Extract Section as Elementor",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        20,
+        480,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "code",
@@ -83,50 +77,82 @@
     },
     {
       "id": "b2",
-      "name": "Save the template",
+      "name": "Save Elementor Template File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        240,
+        720,
         300
       ],
       "parameters": {
         "operation": "toText",
         "sourceProperty": "code",
         "options": {
-          "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-{{ $('Settings').first().json.section }}-elementor.json"
+          "fileName": "={{ String($('Set Website and Section').first().json.website).split('/')[2].replace(/^www\\./, '') }}-{{ $('Set Website and Section').first().json.section }}-elementor.json"
         }
       }
+    },
+    {
+      "parameters": {
+        "content": "## Choose the section\n\nSet the page and the section to rebuild in **Set Website and Section**.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "f13fa857-4ef9-5be4-aca7-7b2cf4db52e9",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild and save\n\nMiroMiro rebuilds the section as an Elementor template, saved as an importable .json file.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "7928a3a5-6234-5e62-912f-1c4a071d1630",
+      "name": "Sticky Note2"
     }
   ],
   "connections": {
-    "Run": {
+    "Run Manually": {
       "main": [
         [
           {
-            "node": "Settings",
+            "node": "Set Website and Section",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Settings": {
+    "Set Website and Section": {
       "main": [
         [
           {
-            "node": "Turn the section into Elementor",
+            "node": "Extract Section as Elementor",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn the section into Elementor": {
+    "Extract Section as Elementor": {
       "main": [
         [
           {
-            "node": "Save the template",
+            "node": "Save Elementor Template File",
             "type": "main",
             "index": 0
           }

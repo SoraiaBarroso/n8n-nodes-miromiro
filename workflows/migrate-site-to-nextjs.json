@@ -3,28 +3,29 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Migrate a site to Next.js\n\nRebuilds the pages of a live site (WordPress/Elementor, Shopify, Webflow, anything public) as a Next.js + Tailwind project, section by section, in page order. Download the zip, run `npm install` and `npm run dev`.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential on both MiroMiro nodes.\n2. List the pages in **Pages to migrate** with the route each should become.\n3. Run it and download the zip from **Zip the project**.\n\n**Cost:** 10 credits per section, so a typical page of 6-10 sections is 60-100 credits.\n\n**Review before launch:** text and images belong to the source site unless it is yours; menus, sliders, forms and carts arrive as static markup; load the fonts and move the images into /public.",
-        "height": 560,
-        "width": 460
+        "content": "## Migrate a WordPress, Elementor or Shopify site to Next.js with MiroMiro\n\n### How it works\nMigrate the pages of a live site (WordPress, Elementor, Shopify, Webflow, anything public) to a Next.js + Tailwind project. **List Pages to Migrate** holds each URL and the route it becomes. **Extract Hero and Find Sections** reads each page in a real browser and lists its sections, **Extract Each Section as React** rebuilds every one as a component, and **Assemble Next.js Project** puts them in page order into an App Router project with Tailwind 4. A section that fails is skipped and counted in `failed`. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Hero and Find Sections** > Credential > Create new, and paste the key.\n4. Select the same credential in **Extract Each Section as React**.\n5. List your pages in **List Pages to Migrate** and click **Execute workflow**.\n6. Download the zip from **Zip the Next.js Project**, then run `npm install` and `npm run dev`.\n\nEach section costs 10 credits, so a page of 6 to 12 sections is 60 to 120. The same page again within 24 hours is free.\n\n### Customization\nPush the files to GitHub instead of zipping them. Before launch: replace the source site's text and images unless it is yours, wire up menus, sliders and forms (they arrive as static markup), and load the fonts.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/migrate-site-to-nextjs.png)",
+        "width": 520,
+        "height": 1129,
+        "color": 1
       },
-      "id": "note-1",
-      "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -560,
-        -200
-      ]
+        -660,
+        100
+      ],
+      "id": "4d196c11-65fd-55ce-b884-9a4eed101507",
+      "name": "Sticky Note"
     },
     {
       "parameters": {},
       "id": "trigger-1",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
         0,
-        0
+        300
       ]
     },
     {
@@ -32,12 +33,12 @@
         "jsCode": "// One item per page: the live URL and the route it becomes in Next.js.\nreturn [\n  { json: { url: 'https://www.allbirds.com', route: '/' } }\n];"
       },
       "id": "pages-1",
-      "name": "Pages to migrate",
+      "name": "List Pages to Migrate",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        220,
-        0
+        240,
+        300
       ]
     },
     {
@@ -50,31 +51,25 @@
         "codeOptions": {}
       },
       "id": "find-1",
-      "name": "Find sections",
+      "name": "Extract Hero and Find Sections",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        440,
-        0
-      ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      }
+        480,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// One item per section still to extract: every section MiroMiro listed on each\n// page, except the one the first call already returned.\nconst norm = (u) => String(u || '').replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/+$/, '')\nconst pages = $('Pages to migrate').all().map((i) => i.json)\nconst out = []\nfor (const item of $input.all()) {\n  const page = item.json\n  const route = (pages.find((p) => norm(p.url) === norm(page.url)) || {}).route || '/'\n  for (const s of (page.sections || []).slice(0, 15)) {\n    if (s.selector === page.selector) continue\n    out.push({ json: { url: page.url, route, selector: s.selector, label: s.label, order: s.order } })\n  }\n}\nreturn out\n"
+        "jsCode": "// One item per section still to extract: every section MiroMiro listed on each\n// page, except the one the first call already returned.\nconst norm = (u) => String(u || '').replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/+$/, '')\nconst pages = $('List Pages to Migrate').all().map((i) => i.json)\nconst out = []\nfor (const item of $input.all()) {\n  const page = item.json\n  const route = (pages.find((p) => norm(p.url) === norm(page.url)) || {}).route || '/'\n  for (const s of (page.sections || []).slice(0, 15)) {\n    if (s.selector === page.selector) continue\n    out.push({ json: { url: page.url, route, selector: s.selector, label: s.label, order: s.order } })\n  }\n}\n// A site with only heroes still finishes: the next node repeats a cached (free) hero call.\nif (!out.length) return [{ json: { url: $input.first().json.url } }]\nreturn out\n"
       },
       "id": "plan-1",
-      "name": "Plan sections",
+      "name": "List Remaining Sections",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        660,
-        0
+        720,
+        300
       ]
     },
     {
@@ -85,35 +80,30 @@
         "framework": "jsx",
         "section": "hero",
         "codeOptions": {
-          "selector": "={{ $json.selector }}"
+          "selector": "={{ $json.selector || '' }}"
         }
       },
       "id": "extract-1",
-      "name": "Extract each section",
+      "name": "Extract Each Section as React",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        880,
-        0
+        960,
+        300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Turns every extracted section into a Next.js (App Router) project:\n// one component per section, one page per route with the sections in page\n// order, Tailwind CSS 4, and the sections' @keyframes in globals.css.\nconst norm = (u) => String(u || '').replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/+$/, '')\nconst pages = $('Pages to migrate').all().map((i) => i.json)\nconst first = $('Find sections').all().map((i) => i.json)\nconst rest = $input.all().map((i) => i.json)\nconst routeOf = (url) => (pages.find((p) => norm(p.url) === norm(url)) || {}).route || '/'\nconst orderOf = (url, selector) => {\n  const page = first.find((f) => norm(f.url) === norm(url))\n  const s = page && (page.sections || []).find((x) => x.selector === selector)\n  return s && s.order ? s.order : 999\n}\nconst pascal = (s) => (s.replace(/(^|[^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (_, __, c) => c.toUpperCase()) || 'Home').replace(/^[0-9]/, 'P$&')\n\nconst byRoute = {}\nfor (const r of [...first, ...rest]) {\n  if (!r.code) continue\n  const route = routeOf(r.url)\n  if (!byRoute[route]) byRoute[route] = []\n  byRoute[route].push({ code: r.code, css: r.css || '', order: orderOf(r.url, r.selector) })\n}\n\nconst files = {}\nconst keyframes = new Set()\nfor (const [route, sections] of Object.entries(byRoute)) {\n  sections.sort((a, b) => a.order - b.order)\n  const slug = route === '/' ? 'home' : route.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')\n  const imports = []\n  const tags = []\n  sections.forEach((s, i) => {\n    const name = `${pascal(slug)}Section${String(i + 1).padStart(2, '0')}`\n    const code = s.code.replace(/export default function [A-Za-z0-9_]+/, `export default function ${name}`)\n    files[`components/${slug}/${name}.jsx`] = code\n    imports.push(`import ${name} from '@/components/${slug}/${name}'`)\n    tags.push(`      <${name} />`)\n    for (const block of s.css.split(/\\n(?=@keyframes)/)) {\n      if (block.includes('@keyframes')) keyframes.add(block.replace(/^\\/\\*[^*]*\\*\\/\\s*/, '').trim())\n    }\n  })\n  const dir = route === '/' ? 'app' : `app${route.replace(/\\/+$/, '')}`\n  files[`${dir}/page.jsx`] = `${imports.join('\\n')}\\n\\nexport default function Page() {\\n  return (\\n    <main>\\n${tags.join('\\n')}\\n    </main>\\n  )\\n}\\n`\n}\n\nconst kf = keyframes.size ? `\\n/* Animations used by the migrated sections */\\n${[...keyframes].join('\\n\\n')}\\n` : ''\nfiles['app/globals.css'] = `@import \"tailwindcss\";\\n${kf}`\nfiles['app/layout.jsx'] = `import './globals.css'\\n\\nexport const metadata = { title: 'Migrated site' }\\n\\nexport default function RootLayout({ children }) {\\n  return (\\n    <html lang=\"en\">\\n      <body>{children}</body>\\n    </html>\\n  )\\n}\\n`\nfiles['jsconfig.json'] = JSON.stringify({ compilerOptions: { paths: { '@/*': ['./*'] } } }, null, 2) + '\\n'\nfiles['postcss.config.mjs'] = `export default { plugins: { '@tailwindcss/postcss': {} } }\\n`\nfiles['next.config.mjs'] = `/** @type {import('next').NextConfig} */\\nexport default { images: { unoptimized: true } }\\n`\nfiles['package.json'] = JSON.stringify({\n  name: 'migrated-site',\n  private: true,\n  scripts: { dev: 'next dev', build: 'next build', start: 'next start' },\n  dependencies: { next: '^15.5.0', react: '^19.1.0', 'react-dom': '^19.1.0' },\n  devDependencies: { tailwindcss: '^4.1.0', '@tailwindcss/postcss': '^4.1.0' }\n}, null, 2) + '\\n'\nfiles['README.md'] = [\n  '# Migrated site',\n  '',\n  'Generated by MiroMiro (https://miromiro.app/api) from:',\n  ...pages.map((p) => `- ${p.url} -> ${p.route}`),\n  '',\n  '```bash',\n  'npm install',\n  'npm run dev',\n  '```',\n  '',\n  'Review before launch:',\n  '- Text and images still come from the source site: replace them unless it is your own site, and download the images into /public before the old site goes offline.',\n  '- Menus, sliders, forms and carts arrive as static markup: wire them up in React.',\n  '- Load the site\\'s fonts (next/font or @font-face): the classes name them but do not include the files.',\n  ''\n].join('\\n')\n\nconst binary = {}\nconst keys = []\nObject.entries(files).forEach(([path, content], i) => {\n  const key = `file${i}`\n  keys.push(key)\n  binary[key] = { data: Buffer.from(content, 'utf8').toString('base64'), mimeType: 'text/plain', fileName: path }\n})\nreturn [{ json: { files: Object.keys(files), binaryKeys: keys.join(',') }, binary }]\n"
+        "jsCode": "// Turns every extracted section into a Next.js (App Router) project:\n// one component per section, one page per route with the sections in page\n// order, Tailwind CSS 4, and the sections' @keyframes in globals.css.\nconst norm = (u) => String(u || '').replace(/^https?:\\/\\//, '').replace(/^www\\./, '').replace(/\\/+$/, '')\nconst pages = $('List Pages to Migrate').all().map((i) => i.json)\nconst first = $('Extract Hero and Find Sections').all().map((i) => i.json)\nconst rest = $input.all().map((i) => i.json)\nconst routeOf = (url) => (pages.find((p) => norm(p.url) === norm(url)) || {}).route || '/'\nconst orderOf = (url, selector) => {\n  const page = first.find((f) => norm(f.url) === norm(url))\n  const s = page && (page.sections || []).find((x) => x.selector === selector)\n  return s && s.order ? s.order : 999\n}\nconst pascal = (s) => (s.replace(/(^|[^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (_, __, c) => c.toUpperCase()) || 'Home').replace(/^[0-9]/, 'P$&')\n\nconst byRoute = {}\nconst seen = new Set()\nconst failed = rest.filter((r) => !r.code).length\nfor (const r of [...first, ...rest]) {\n  if (!r.code) continue\n  const key = norm(r.url) + '|' + r.selector\n  if (seen.has(key)) continue\n  seen.add(key)\n  const route = routeOf(r.url)\n  if (!byRoute[route]) byRoute[route] = []\n  byRoute[route].push({ code: r.code, css: r.css || '', order: orderOf(r.url, r.selector) })\n}\n\nconst files = {}\nconst keyframes = new Set()\nfor (const [route, sections] of Object.entries(byRoute)) {\n  sections.sort((a, b) => a.order - b.order)\n  const slug = route === '/' ? 'home' : route.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')\n  const imports = []\n  const tags = []\n  sections.forEach((s, i) => {\n    const name = `${pascal(slug)}Section${String(i + 1).padStart(2, '0')}`\n    const code = s.code.replace(/export default function [A-Za-z0-9_]+/, `export default function ${name}`)\n    files[`components/${slug}/${name}.jsx`] = code\n    imports.push(`import ${name} from '@/components/${slug}/${name}'`)\n    tags.push(`      <${name} />`)\n    for (const block of s.css.split(/\\n(?=@keyframes)/)) {\n      if (block.includes('@keyframes')) keyframes.add(block.replace(/^\\/\\*[^*]*\\*\\/\\s*/, '').trim())\n    }\n  })\n  const dir = route === '/' ? 'app' : `app${route.replace(/\\/+$/, '')}`\n  files[`${dir}/page.jsx`] = `${imports.join('\\n')}\\n\\nexport default function Page() {\\n  return (\\n    <main>\\n${tags.join('\\n')}\\n    </main>\\n  )\\n}\\n`\n}\n\nconst kf = keyframes.size ? `\\n/* Animations used by the migrated sections */\\n${[...keyframes].join('\\n\\n')}\\n` : ''\nfiles['app/globals.css'] = `@import \"tailwindcss\";\\n${kf}`\nfiles['app/layout.jsx'] = `import './globals.css'\\n\\nexport const metadata = { title: 'Migrated site' }\\n\\nexport default function RootLayout({ children }) {\\n  return (\\n    <html lang=\"en\">\\n      <body>{children}</body>\\n    </html>\\n  )\\n}\\n`\nfiles['jsconfig.json'] = JSON.stringify({ compilerOptions: { paths: { '@/*': ['./*'] } } }, null, 2) + '\\n'\nfiles['postcss.config.mjs'] = `export default { plugins: { '@tailwindcss/postcss': {} } }\\n`\nfiles['next.config.mjs'] = `/** @type {import('next').NextConfig} */\\nexport default { images: { unoptimized: true } }\\n`\nfiles['package.json'] = JSON.stringify({\n  name: 'migrated-site',\n  private: true,\n  scripts: { dev: 'next dev', build: 'next build', start: 'next start' },\n  dependencies: { next: '^15.5.0', react: '^19.1.0', 'react-dom': '^19.1.0' },\n  devDependencies: { tailwindcss: '^4.1.0', '@tailwindcss/postcss': '^4.1.0' }\n}, null, 2) + '\\n'\nfiles['README.md'] = [\n  '# Migrated site',\n  '',\n  'Generated by MiroMiro (https://miromiro.app/api) from:',\n  ...pages.map((p) => `- ${p.url} -> ${p.route}`),\n  '',\n  '```bash',\n  'npm install',\n  'npm run dev',\n  '```',\n  '',\n  'Review before launch:',\n  '- Text and images still come from the source site: replace them unless it is your own site, and download the images into /public before the old site goes offline.',\n  '- Menus, sliders, forms and carts arrive as static markup: wire them up in React.',\n  '- Load the site\\'s fonts (next/font or @font-face): the classes name them but do not include the files.',\n  ''\n].join('\\n')\n\nconst binary = {}\nconst keys = []\nObject.entries(files).forEach(([path, content], i) => {\n  const key = `file${i}`\n  keys.push(key)\n  binary[key] = { data: Buffer.from(content, 'utf8').toString('base64'), mimeType: 'text/plain', fileName: path }\n})\nreturn [{ json: { files: Object.keys(files), failed, binaryKeys: keys.join(',') }, binary }]\n"
       },
       "id": "assemble-1",
-      "name": "Assemble Next.js project",
+      "name": "Assemble Next.js Project",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
-        0
+        1200,
+        300
       ]
     },
     {
@@ -125,76 +115,124 @@
         "binaryPropertyOutput": "data"
       },
       "id": "zip-1",
-      "name": "Zip the project",
+      "name": "Zip the Next.js Project",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        1320,
-        0
+        1440,
+        300
       ]
+    },
+    {
+      "parameters": {
+        "content": "## List the pages\n\nOne line per page in **List Pages to Migrate**: the live URL and its Next.js route.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "d186ba79-fb01-5231-b848-4d1bce22dbd0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Find the sections\n\nThe first call rebuilds each page's hero and lists its other sections.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "d9d709a8-34ce-5d9d-9408-91668733bf31",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild and assemble\n\nEach section becomes a React component. Failed ones are skipped and counted; the rest become a zipped Next.js project.",
+        "width": 700,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        140
+      ],
+      "id": "71d9f5b0-9c8e-509f-ba60-f9e607941282",
+      "name": "Sticky Note3"
     }
   ],
   "connections": {
-    "Run": {
+    "Run Manually": {
       "main": [
         [
           {
-            "node": "Pages to migrate",
+            "node": "List Pages to Migrate",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pages to migrate": {
+    "List Pages to Migrate": {
       "main": [
         [
           {
-            "node": "Find sections",
+            "node": "Extract Hero and Find Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Find sections": {
+    "Extract Hero and Find Sections": {
       "main": [
         [
           {
-            "node": "Plan sections",
+            "node": "List Remaining Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Plan sections": {
+    "List Remaining Sections": {
       "main": [
         [
           {
-            "node": "Extract each section",
+            "node": "Extract Each Section as React",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract each section": {
+    "Extract Each Section as React": {
       "main": [
         [
           {
-            "node": "Assemble Next.js project",
+            "node": "Assemble Next.js Project",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Assemble Next.js project": {
+    "Assemble Next.js Project": {
       "main": [
         [
           {
-            "node": "Zip the project",
+            "node": "Zip the Next.js Project",
             "type": "main",
             "index": 0
           }

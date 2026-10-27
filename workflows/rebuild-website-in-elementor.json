@@ -3,33 +3,43 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Rebuild website sections in Elementor\n\nTurns sections of any live website into Elementor templates you import into WordPress, styled like the original (colors, fonts, spacing, responsive and hover styles).\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding (300 credits a month, no card) and add it as a **MiroMiro API** credential.\n2. List the pages and sections in **Pages to rebuild**.\n3. Run it. Each item becomes a `.json` file: import it in WordPress under *Templates > Saved Templates > Import*.\n\nEach section costs 10 credits. Add a Google Drive, Dropbox or email node at the end to deliver the files.\n\nThe text and images belong to the source site: replace them with your own unless it is your site.",
-        "height": 420,
-        "width": 420
+        "content": "## Rebuild many website sections as Elementor templates with MiroMiro\n\n### How it works\nRebuild many sections from many pages as Elementor templates in one run. **List Pages and Sections** holds one line per section: a page URL and a section (`hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`). **Extract Sections as Elementor** rebuilds each one in a real browser as an Elementor container with an HTML widget, styled like the original. **Keep Rebuilt Templates** names the files and drops any section that failed, listing it in `failed`, so one bad page does not stop the run. **Save Each Template as JSON** gives you one importable .json per section. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Sections as Elementor** > Credential > Create new, and paste the key.\n4. Edit the list in **List Pages and Sections** and click **Execute workflow**.\n5. Download each file from **Save Each Template as JSON**. In WordPress: Templates > Saved Templates > Import Templates.\n\nEach section costs 10 credits. The same call again within 24 hours is free.\n\n### Customization\nRead the list from a Google Sheet instead of the Code node. Add a Google Drive, Dropbox or email node at the end to deliver the files. The text and images belong to the source site: replace them unless it is your site or your client's.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/rebuild-website-in-elementor.png)",
+        "width": 520,
+        "height": 1109,
+        "color": 1
       },
-      "id": "note-1",
-      "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-520, -140]
+      "position": [
+        -660,
+        100
+      ],
+      "id": "d0e4b929-5f85-514a-a657-7c1a411b0adf",
+      "name": "Sticky Note"
     },
     {
       "parameters": {},
       "id": "trigger-1",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 0]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
         "jsCode": "// One item per section to rebuild. section: hero, header, pricing, features, testimonials, faq, cta or footer\nreturn [\n  { json: { url: 'https://linear.app', section: 'hero' } },\n  { json: { url: 'https://linear.app/pricing', section: 'pricing' } },\n  { json: { url: 'https://stripe.com', section: 'footer' } }\n];"
       },
       "id": "pages-1",
-      "name": "Pages to rebuild",
+      "name": "List Pages and Sections",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [220, 0]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
@@ -41,31 +51,125 @@
         "codeOptions": {}
       },
       "id": "miromiro-1",
-      "name": "Extract as Elementor template",
+      "name": "Extract Sections as Elementor",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
-      "position": [440, 0],
-      "credentials": { "miroMiroApi": { "id": "", "name": "MiroMiro API" } }
+      "position": [
+        480,
+        300
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "operation": "toText",
         "sourceProperty": "code",
         "options": {
-          "fileName": "={{ $json.url.split('/')[2] }}-{{ $json.section }}-elementor.json"
+          "fileName": "={{ $json.fileName }}"
         }
       },
       "id": "file-1",
-      "name": "Save as .json file",
+      "name": "Save Each Template as JSON",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
-      "position": [660, 0]
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keep the sections that came back as templates; name each file; list the ones that failed.\nconst asked = $('List Pages and Sections').all().map(i => i.json)\nconst ok = [], failed = []\n$input.all().forEach((item, i) => {\n  const a = asked[i] || {}\n  const host = String(a.url).split('/')[2].replace(/^www\\./, '')\n  if (item.json.code) ok.push({ json: { url: a.url, section: a.section, code: item.json.code, fileName: host + '-' + a.section + '-elementor.json' }, pairedItem: { item: i } })\n  else failed.push(a.url + ' ' + a.section + ': ' + (item.json.error?.message || item.json.error || 'no template'))\n})\nif (!ok.length) throw new Error('None of the sections could be rebuilt. ' + failed.join('; '))\nok[0].json.failed = failed\nreturn ok"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "id": "keep-ok",
+      "name": "Keep Rebuilt Templates"
+    },
+    {
+      "parameters": {
+        "content": "## List what to rebuild\n\nOne line per section in **List Pages and Sections**: the page URL and the section.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "53cb4c86-01a9-52e0-b681-f41d5652ecda",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild and save\n\nEach section becomes an Elementor template file. Failed ones are skipped and listed in `failed`.",
+        "width": 700,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "69513331-1544-5159-97b1-6caa61adf418",
+      "name": "Sticky Note2"
     }
   ],
   "connections": {
-    "Run": { "main": [[{ "node": "Pages to rebuild", "type": "main", "index": 0 }]] },
-    "Pages to rebuild": { "main": [[{ "node": "Extract as Elementor template", "type": "main", "index": 0 }]] },
-    "Extract as Elementor template": { "main": [[{ "node": "Save as .json file", "type": "main", "index": 0 }]] }
+    "Run Manually": {
+      "main": [
+        [
+          {
+            "node": "List Pages and Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Pages and Sections": {
+      "main": [
+        [
+          {
+            "node": "Extract Sections as Elementor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Sections as Elementor": {
+      "main": [
+        [
+          {
+            "node": "Keep Rebuilt Templates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Rebuilt Templates": {
+      "main": [
+        [
+          {
+            "node": "Save Each Template as JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": {}
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

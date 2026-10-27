@@ -78,7 +78,7 @@ Ready-made workflows in [`workflows/`](workflows). Every one was run end to end 
 https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/workflows/download-every-image.json
 ```
 
-Or download the `.json` and use **Import from File**. Then open any MiroMiro node, create the credential with your [free API key](https://miromiro.app/api/onboarding) (300 credits a month, no card), change the website in **Settings**, and click **Execute workflow**.
+Or download the `.json` and use **Import from File**. Then open any MiroMiro node, create the credential with your [free API key](https://miromiro.app/api/onboarding) (300 credits a month, no card), change the website in the **Set Website** node, and click **Execute workflow**.
 
 ### Start here
 
@@ -94,7 +94,7 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 
 **Download every image from a website**, as it looks in n8n:
 
-![The Download every image workflow in n8n: Settings, MiroMiro lists the images, each one is downloaded, and they are zipped](docs/templates/download-every-image.png)
+![The Download every image workflow in n8n: set the website, MiroMiro lists the images, each one is downloaded, and they are zipped](docs/templates/download-every-image.png)
 
 A whole page is usually 6 to 12 sections, so 60 to 120 credits. The free plan's 300 credits a month covers two to five full pages.
 

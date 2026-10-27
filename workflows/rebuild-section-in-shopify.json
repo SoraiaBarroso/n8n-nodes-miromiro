@@ -3,62 +3,179 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Rebuild a website section in your Shopify theme\n\nTurns a section of any live website into a Shopify theme section and uploads it straight into your theme. Then add it to any page from the theme editor.\n\n**Setup**\n1. Get a free MiroMiro API key at https://miromiro.app/api/onboarding and add it as a **MiroMiro API** credential.\n2. In **Extract as Shopify section**, set the page URL and the section (Hero, Pricing, Footer...).\n3. In Shopify, create a custom app with the `write_themes` scope and copy its Admin API access token. Add it as a **Header Auth** credential: name `X-Shopify-Access-Token`, value = the token.\n4. In **Upload to Shopify theme**, replace `YOUR-STORE` (the part before .myshopify.com) and `YOUR-THEME-ID` (Online Store > Themes > Edit code: the number in the URL).\n5. Run it, then open the theme editor and **Add section**.\n\nTest on an unpublished theme copy first. The text and images belong to the source site: replace them with your own unless it is your site.",
-        "height": 520,
-        "width": 440
+        "content": "## Rebuild a website section in your Shopify theme with MiroMiro\n\n### How it works\nTurn a section of any live website into a Shopify theme section and upload it straight into your theme. **Set Website, Section and Store** holds the page, the section (`hero`, `header`, `features`, `pricing`, `testimonials`, `faq`, `cta` or `footer`), your store and theme ID. **Extract Section as Shopify** rebuilds the section in a real browser as an Online Store 2.0 `.liquid` section with its schema, styled like the original. **Upload Section to Shopify Theme** saves it as `sections/miromiro-<section>.liquid` through the Admin API. Then add it to any page from the theme editor. If a step fails, the workflow stops with Shopify's or MiroMiro's message. Failed MiroMiro calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Section as Shopify** > Credential > Create new, and paste the key.\n4. In Shopify, create a custom app with the `write_themes` scope. In **Upload Section to Shopify Theme**, create a Header Auth credential: name `X-Shopify-Access-Token`, value = its Admin API token.\n5. In **Set Website, Section and Store**, set `store` (the part before .myshopify.com) and `themeId` (the number in the Edit code URL).\n6. Click **Execute workflow**, then open the theme editor > Add section.\n\nEach section costs 10 credits.\n\n### Customization\nTest on an unpublished theme copy first. To move a whole page, loop over the sections of the \"Rebuild a whole page as Shopify sections\" template. Replace the source site's text and images unless it is your own.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/rebuild-section-in-shopify.png)",
+        "width": 520,
+        "height": 1170,
+        "color": 1
       },
-      "id": "note-1",
-      "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-540, -180]
+      "position": [
+        -660,
+        100
+      ],
+      "id": "b998c397-3ce9-5ff7-ab4a-5ea1211a6c91",
+      "name": "Sticky Note"
     },
     {
       "parameters": {},
       "id": "trigger-1",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 0]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
         "resource": "website",
         "operation": "code",
-        "url": "https://linear.app",
+        "url": "={{ $json.website }}",
         "framework": "shopify",
-        "section": "hero",
+        "section": "={{ $json.section }}",
         "codeOptions": {}
       },
       "id": "miromiro-1",
-      "name": "Extract as Shopify section",
+      "name": "Extract Section as Shopify",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
-      "position": [220, 0],
-      "credentials": { "miroMiroApi": { "id": "", "name": "MiroMiro API" } }
+      "position": [
+        480,
+        300
+      ]
     },
     {
       "parameters": {
         "method": "PUT",
-        "url": "https://YOUR-STORE.myshopify.com/admin/api/2025-07/themes/YOUR-THEME-ID/assets.json",
+        "url": "=https://{{ $('Set Website, Section and Store').first().json.store }}.myshopify.com/admin/api/2026-07/themes/{{ $('Set Website, Section and Store').first().json.themeId }}/assets.json",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ asset: { key: 'sections/miromiro-' + $json.section + '.liquid', value: $json.code } }) }}",
+        "jsonBody": "={{ JSON.stringify({ asset: { key: 'sections/miromiro-' + $('Set Website, Section and Store').first().json.section + '.liquid', value: $json.code } }) }}",
         "options": {}
       },
       "id": "shopify-1",
-      "name": "Upload to Shopify theme",
+      "name": "Upload Section to Shopify Theme",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [440, 0],
-      "credentials": { "httpHeaderAuth": { "id": "", "name": "Shopify Admin token" } }
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "website",
+              "value": "https://linear.app",
+              "type": "string"
+            },
+            {
+              "id": "s1",
+              "name": "section",
+              "value": "hero",
+              "type": "string"
+            },
+            {
+              "id": "s2",
+              "name": "store",
+              "value": "YOUR-STORE",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "themeId",
+              "value": "YOUR-THEME-ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        300
+      ],
+      "id": "settings",
+      "name": "Set Website, Section and Store"
+    },
+    {
+      "parameters": {
+        "content": "## Choose the section and store\n\nSet the page, section, store and theme ID in **Set Website, Section and Store**.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "217443ab-41ed-5db4-9309-e853001f443c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild and upload\n\nMiroMiro rebuilds the section as Liquid, and it is uploaded into your theme's sections folder.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "c999bf8c-ca15-500c-a377-b76e8b08e74a",
+      "name": "Sticky Note2"
     }
   ],
   "connections": {
-    "Run": { "main": [[{ "node": "Extract as Shopify section", "type": "main", "index": 0 }]] },
-    "Extract as Shopify section": { "main": [[{ "node": "Upload to Shopify theme", "type": "main", "index": 0 }]] }
+    "Run Manually": {
+      "main": [
+        [
+          {
+            "node": "Set Website, Section and Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Website, Section and Store": {
+      "main": [
+        [
+          {
+            "node": "Extract Section as Shopify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Section as Shopify": {
+      "main": [
+        [
+          {
+            "node": "Upload Section to Shopify Theme",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": {}
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

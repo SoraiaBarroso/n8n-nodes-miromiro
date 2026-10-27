@@ -2,39 +2,39 @@
   "name": "Get any website's brand kit as files (logo, CSS variables, design tokens) with MiroMiro",
   "nodes": [
     {
-      "id": "note",
-      "name": "About this workflow",
+      "parameters": {
+        "content": "## Get any website's brand kit as files with MiroMiro\n\n### How it works\nGet any website's brand kit as files in one zip. **Extract Brand Kit** reads the brand colors with their roles, fonts and logo of the site in **Set Website URL**, and **Extract Design Tokens** reads every color, font size, spacing and radius as W3C Design Tokens. The zip holds the logo, `brand.css` (colors and fonts as CSS variables), `tokens.json` (for Figma variables, Style Dictionary or Tokens Studio) and `brand.md`, a readable summary that says whether the colors were declared by the site or inferred. If the logo cannot be downloaded, the kit is built without it. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Brand Kit** > Credential > Create new, and paste the key.\n4. Select the same credential in **Extract Design Tokens**.\n5. Set your website in **Set Website URL** and click **Execute workflow**.\n6. Download the zip from **Zip the Brand Kit**.\n\nEach website costs 20 credits (10 brand + 10 tokens). The same site again within 24 hours is free.\n\n### Customization\nRead the websites from a Google Sheet to build kits for a list of clients or prospects. Send the zip to Google Drive, Notion or email. Remove **Extract Design Tokens** if you only need colors, fonts and logo (10 credits).\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/brand-kit-files.png)",
+        "width": 520,
+        "height": 1088,
+        "color": 1
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -460,
-        -160
+        -660,
+        100
       ],
-      "parameters": {
-        "content": "## Get any website's brand kit as files\nOne zip with everything you need to build in a site's style:\n- `logo` - the site's logo file\n- `brand.css` - brand colors and fonts as CSS variables\n- `tokens.json` - every color, font, size, spacing and radius as W3C Design Tokens (import into Figma variables, Style Dictionary or Tokens Studio)\n- `brand.md` - a readable summary, including whether the colors were declared by the site or inferred\n\nThe zip is on **Zip the brand kit**. 20 credits per website.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
-        "height": 420,
-        "width": 760,
-        "color": 7
-      }
+      "id": "58424068-87be-5b84-9be0-c746c55210bb",
+      "name": "Sticky Note"
     },
     {
       "id": "run",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -420,
+        0,
         300
       ],
       "parameters": {}
     },
     {
       "id": "settings",
-      "name": "Settings",
+      "name": "Set Website URL",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -200,
+        240,
         300
       ],
       "parameters": {
@@ -53,19 +53,13 @@
     },
     {
       "id": "k1",
-      "name": "Get the brand kit",
+      "name": "Extract Brand Kit",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        20,
+        480,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "brand",
@@ -75,141 +69,184 @@
     },
     {
       "id": "k2",
-      "name": "Get the design tokens",
+      "name": "Extract Design Tokens",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        240,
+        720,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "tokens",
-        "url": "={{ $('Settings').first().json.website }}",
+        "url": "={{ $('Set Website URL').first().json.website }}",
         "format": "dtcg",
         "options": {}
       }
     },
     {
       "id": "k3",
-      "name": "Download the logo",
+      "name": "Download Logo File",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        460,
+        960,
         300
       ],
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
       "parameters": {
-        "url": "={{ $('Get the brand kit').first().json.logo }}",
+        "url": "={{ $('Extract Brand Kit').first().json.logo }}",
         "options": {
           "response": {
             "response": {
               "responseFormat": "file"
             }
-          }
+          },
+          "timeout": 30000
         }
       }
     },
     {
       "id": "k4",
-      "name": "Build the brand kit files",
+      "name": "Build Brand Kit Files",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        680,
+        1200,
         300
       ],
       "parameters": {
-        "jsCode": "const brand = $('Get the brand kit').first().json\nconst tokens = $('Get the design tokens').first().json\nconst host = String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '')\nconst file = (text, fileName, mimeType) => ({ data: Buffer.from(text).toString('base64'), fileName, mimeType })\nconst c = brand.colors || {}\nconst fonts = brand.fonts || []\nconst palette = (brand.palette || []).slice(0, 12)\nconst roles = ['primary', 'accent', 'background', 'text'].filter(k => c[k])\n\n// brand.css: the named colors, the palette and the fonts as CSS variables.\nconst css = [\n  '/* Brand of ' + host + ', extracted by MiroMiro (https://miromiro.app/api) */',\n  ':root {',\n  ...roles.map(k => '  --brand-' + k + ': ' + c[k] + ';'),\n  ...palette.map((p, i) => '  --palette-' + (i + 1) + ': ' + p.color + ';  /* ' + p.name + ' */'),\n  ...fonts.map((f, i) => '  --font-' + (i + 1) + ': \"' + f + '\", sans-serif;'),\n  '}',\n].join('\\n')\n\n// tokens.json: the W3C Design Tokens file as MiroMiro returned it.\nconst { usage, ...dtcg } = tokens\n\n// brand.md: a readable summary.\nconst md = [\n  '# Brand of ' + host,\n  '',\n  '## Colors',\n  ...roles.map(k => '- **' + k + ':** ' + c[k]),\n  '',\n  '## Palette',\n  ...palette.map(p => '- ' + p.color + ' (' + p.name + ', used ' + p.count + 'x)'),\n  '',\n  '## Fonts',\n  ...fonts.map(f => '- ' + f),\n  '',\n  '## Logo',\n  brand.logo || 'none found',\n  '',\n  '## How sure is this?',\n  'Confidence: ' + brand.confidence + ' (0 to 1)',\n  (brand.signals && brand.signals.explanation) || '',\n].join('\\n')\n\nconst binary = {\n  css: file(css, 'brand.css', 'text/css'),\n  tokens: file(JSON.stringify(dtcg, null, 2), 'tokens.json', 'application/json'),\n  summary: file(md, 'brand.md', 'text/markdown'),\n}\nconst logo = $('Download the logo').first().binary?.data\nif (logo) binary.logo = { ...logo, fileName: 'logo.' + (logo.fileExtension || 'png') }\nreturn [{ json: { website: host, colors: c, fonts }, binary, pairedItem: { item: 0 } }]"
+        "jsCode": "const brand = $('Extract Brand Kit').first().json\nconst tokens = $('Extract Design Tokens').first().json\nconst host = String($('Set Website URL').first().json.website).split('/')[2].replace(/^www\\./, '')\nconst file = (text, fileName, mimeType) => ({ data: Buffer.from(text).toString('base64'), fileName, mimeType })\nconst c = brand.colors || {}\nconst fonts = brand.fonts || []\nconst palette = (brand.palette || []).slice(0, 12)\nconst roles = ['primary', 'accent', 'background', 'text'].filter(k => c[k])\n\n// brand.css: the named colors, the palette and the fonts as CSS variables.\nconst css = [\n  '/* Brand of ' + host + ', extracted by MiroMiro (https://miromiro.app/api) */',\n  ':root {',\n  ...roles.map(k => '  --brand-' + k + ': ' + c[k] + ';'),\n  ...palette.map((p, i) => '  --palette-' + (i + 1) + ': ' + p.color + ';  /* ' + p.name + ' */'),\n  ...fonts.map((f, i) => '  --font-' + (i + 1) + ': \"' + f + '\", sans-serif;'),\n  '}',\n].join('\\n')\n\n// tokens.json: the W3C Design Tokens file as MiroMiro returned it.\nconst { usage, ...dtcg } = tokens\n\n// brand.md: a readable summary.\nconst md = [\n  '# Brand of ' + host,\n  '',\n  '## Colors',\n  ...roles.map(k => '- **' + k + ':** ' + c[k]),\n  '',\n  '## Palette',\n  ...palette.map(p => '- ' + p.color + ' (' + p.name + ', used ' + p.count + 'x)'),\n  '',\n  '## Fonts',\n  ...fonts.map(f => '- ' + f),\n  '',\n  '## Logo',\n  brand.logo || 'none found',\n  '',\n  '## How sure is this?',\n  'Confidence: ' + brand.confidence + ' (0 to 1)',\n  (brand.signals && brand.signals.explanation) || '',\n].join('\\n')\n\nconst binary = {\n  css: file(css, 'brand.css', 'text/css'),\n  tokens: file(JSON.stringify(dtcg, null, 2), 'tokens.json', 'application/json'),\n  summary: file(md, 'brand.md', 'text/markdown'),\n}\nconst logo = $('Download Logo File').first().binary?.data\nif (logo) binary.logo = { ...logo, fileName: 'logo.' + (logo.fileExtension || 'png') }\nreturn [{ json: { website: host, colors: c, fonts }, binary, pairedItem: { item: 0 } }]"
       }
     },
     {
       "id": "k5",
-      "name": "Zip the brand kit",
+      "name": "Zip the Brand Kit",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        900,
+        1440,
         300
       ],
       "parameters": {
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-brand-kit.zip",
+        "fileName": "={{ String($('Set Website URL').first().json.website).split('/')[2].replace(/^www\\./, '') }}-brand-kit.zip",
         "binaryPropertyOutput": "data"
       }
+    },
+    {
+      "parameters": {
+        "content": "## Choose the website\n\nPut the website in **Set Website URL**.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "36788a2e-65a5-5db1-8c81-b5ec005b58dd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Read the brand\n\nMiroMiro reads the brand (colors, fonts, logo) and every design token, and the logo file is downloaded.",
+        "width": 700,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "a67e3a41-ce19-5e32-81af-5d91d1d7cb73",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Build and zip\n\nThe results become brand.css, tokens.json, brand.md and the logo, in one zip.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        140
+      ],
+      "id": "ea933b82-92b8-5947-b4cc-667b9f0c9144",
+      "name": "Sticky Note3"
     }
   ],
   "connections": {
-    "Run": {
+    "Run Manually": {
       "main": [
         [
           {
-            "node": "Settings",
+            "node": "Set Website URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Settings": {
+    "Set Website URL": {
       "main": [
         [
           {
-            "node": "Get the brand kit",
+            "node": "Extract Brand Kit",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get the brand kit": {
+    "Extract Brand Kit": {
       "main": [
         [
           {
-            "node": "Get the design tokens",
+            "node": "Extract Design Tokens",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get the design tokens": {
+    "Extract Design Tokens": {
       "main": [
         [
           {
-            "node": "Download the logo",
+            "node": "Download Logo File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Download the logo": {
+    "Download Logo File": {
       "main": [
         [
           {
-            "node": "Build the brand kit files",
+            "node": "Build Brand Kit Files",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build the brand kit files": {
+    "Build Brand Kit Files": {
       "main": [
         [
           {
-            "node": "Zip the brand kit",
+            "node": "Zip the Brand Kit",
             "type": "main",
             "index": 0
           }

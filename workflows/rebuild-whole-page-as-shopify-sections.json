@@ -2,39 +2,39 @@
   "name": "Rebuild a whole page as Shopify theme sections with MiroMiro",
   "nodes": [
     {
-      "id": "note",
-      "name": "About this workflow",
+      "parameters": {
+        "content": "## Rebuild a whole page as Shopify theme sections with MiroMiro\n\n### How it works\nRebuild every section of a web page as Shopify Online Store 2.0 theme sections. **Extract Hero and Find Sections** loads the page from **Set Website URL** in a real browser, rebuilds the hero and lists every other section. **Extract Each Section as Shopify** rebuilds each one as a `.liquid` section with its schema, styled like the original, and the files are zipped in page order. A section that fails is skipped and counted in `failed`, so one bad section does not stop the run. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Extract Hero and Find Sections** > Credential > Create new, and paste the key.\n4. Select the same credential in **Extract Each Section as Shopify**.\n5. Set your page in **Set Website URL** and click **Execute workflow**.\n6. Download the zip from **Zip the Liquid Sections**. In Shopify: Online Store > Themes > Edit code > sections, add each file, then add the sections in the theme editor.\n\nEach section costs 10 credits, so a page of 6 to 12 sections is 60 to 120. The same page again within 24 hours is free.\n\n### Customization\nUpload each file straight into a theme with an HTTP Request node and the Shopify Admin API (see the \"Rebuild a section in your Shopify theme\" template). Test on an unpublished theme copy. The text and images belong to the source site: replace them unless it is yours.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/rebuild-whole-page-as-shopify-sections.png)",
+        "width": 520,
+        "height": 1129,
+        "color": 1
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -460,
-        -120
+        -660,
+        100
       ],
-      "parameters": {
-        "content": "## Rebuild a whole page as Shopify sections\nMiroMiro rebuilds every section of the page as a Shopify Online Store 2.0 section (`.liquid`), and n8n zips them.\n\nIn Shopify: *Online Store > Themes > Edit code > sections*, add each file, then add the sections to a page in the theme editor.\n\n10 credits per section; repeat calls within 24h are free.\n\n**Setup (1 minute)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Change the website in **Settings**, then click **Execute workflow**.",
-        "height": 320,
-        "width": 760,
-        "color": 7
-      }
+      "id": "b72a37f5-7c43-5567-b492-37b9529596bd",
+      "name": "Sticky Note"
     },
     {
       "id": "run",
-      "name": "Run",
+      "name": "Run Manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -420,
+        0,
         300
       ],
       "parameters": {}
     },
     {
       "id": "settings",
-      "name": "Settings",
+      "name": "Set Website URL",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -200,
+        240,
         300
       ],
       "parameters": {
@@ -53,19 +53,13 @@
     },
     {
       "id": "s1",
-      "name": "Turn the hero into Shopify",
+      "name": "Extract Hero and Find Sections",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        20,
+        480,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "code",
@@ -77,32 +71,26 @@
     },
     {
       "id": "s2",
-      "name": "Split: one item per section",
+      "name": "List Remaining Sections",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
+        720,
         300
       ],
       "parameters": {
-        "jsCode": "// The first result is the hero, and it lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Settings').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order }, pairedItem: { item: 0 } }))"
+        "jsCode": "// The first call returns the hero and lists every other section on the page.\nconst first = $input.first().json\nconst settings = $('Set Website URL').first().json\nconst rest = (first.sections || [])\n  .filter(s => s.selector !== first.selector)\n  .sort((a, b) => a.order - b.order)\n  .slice(0, 15)\n// A page with only a hero still finishes: the next node then repeats the\n// hero call, which is cached (free) and dropped as a duplicate later.\nif (!rest.length) return [{ json: { url: settings.website }, pairedItem: { item: 0 } }]\nreturn rest.map(s => ({ json: { url: settings.website, selector: s.selector, section: s.label, order: s.order }, pairedItem: { item: 0 } }))"
       }
     },
     {
       "id": "s3",
-      "name": "Turn each section into Shopify",
+      "name": "Extract Each Section as Shopify",
       "type": "n8n-nodes-miromiro.miroMiro",
       "typeVersion": 1,
       "position": [
-        460,
+        960,
         300
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      },
       "parameters": {
         "resource": "website",
         "operation": "code",
@@ -110,103 +98,151 @@
         "framework": "shopify",
         "section": "hero",
         "codeOptions": {
-          "selector": "={{ $json.selector }}"
+          "selector": "={{ $json.selector || '' }}"
         }
       },
       "onError": "continueRegularOutput"
     },
     {
       "id": "s4",
-      "name": "Save each section as a .liquid file",
+      "name": "Save Each Section as Liquid File",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        680,
+        1200,
         300
       ],
       "parameters": {
-        "jsCode": "// Hero plus every section, sorted by where they sit on the page.\nconst hero = $('Turn the hero into Shopify').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst all = [hero, ...$input.all().map(i => i.json)].filter(r => r.code)\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst host = String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '').replace(/[^a-z0-9]+/gi, '-')\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = 'miromiro-' + host + '-' + String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector) + '.liquid'\n  binary['file_' + i] = { data: Buffer.from(r.code).toString('base64'), mimeType: 'text/plain', fileName: name, fileExtension: 'liquid' }\n})\nreturn [{ json: { sections: all.length }, binary, pairedItem: { item: 0 } }]"
+        "jsCode": "// Hero plus every section, sorted by where they sit on the page, duplicates dropped.\nconst hero = $('Extract Hero and Find Sections').first().json\nconst order = Object.fromEntries((hero.sections || []).map(s => [s.selector, s.order]))\nconst labelOf = Object.fromEntries((hero.sections || []).map(s => [s.selector, String(s.label || '').split(/\\s+/).slice(0, 4).join(' ')]))\nconst results = $input.all().map(i => i.json)\nconst failed = results.filter(r => !r.code).length\nconst seen = new Set()\nconst all = [hero, ...results].filter(r => r.code && !seen.has(r.selector) && seen.add(r.selector))\n  .sort((a, b) => (order[a.selector] ?? (a === hero ? 0 : 999)) - (order[b.selector] ?? (b === hero ? 0 : 999)))\nconst host = String($('Set Website URL').first().json.website).split('/')[2].replace(/^www\\./, '').replace(/[^a-z0-9]+/gi, '-')\n// File names from the first words of each section.\nconst slug = s => String(s || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)\nconst binary = {}\nall.forEach((r, i) => {\n  const name = 'miromiro-' + host + '-' + String(i + 1).padStart(2, '0') + '-' + slug(r === hero ? 'hero' : labelOf[r.selector] || r.selector) + '.liquid'\n  binary['file_' + i] = { data: Buffer.from(r.code).toString('base64'), mimeType: 'text/plain', fileName: name, fileExtension: 'liquid' }\n})\nreturn [{ json: { sections: all.length, failed }, binary, pairedItem: { item: 0 } }]"
       }
     },
     {
       "id": "s5",
-      "name": "Zip the sections",
+      "name": "Zip the Liquid Sections",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        900,
+        1440,
         300
       ],
       "parameters": {
         "operation": "compress",
         "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-shopify-sections.zip",
+        "fileName": "={{ String($('Set Website URL').first().json.website).split('/')[2].replace(/^www\\./, '') }}-shopify-sections.zip",
         "binaryPropertyOutput": "data"
       }
+    },
+    {
+      "parameters": {
+        "content": "## Choose the page\n\nPut the page to rebuild in **Set Website URL**.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "a02f7d57-b1fd-52ea-b6c0-5b231e31266e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Find the sections\n\nThe first call rebuilds the hero and lists every other section on the page, in order.",
+        "width": 460,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        140
+      ],
+      "id": "d9d709a8-34ce-5d9d-9408-91668733bf31",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Rebuild and zip\n\nEach section becomes a .liquid theme section. A failed section is skipped and counted; the rest are zipped.",
+        "width": 700,
+        "height": 340,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        140
+      ],
+      "id": "153f6766-8f8f-5451-9b02-9fa74fd1e7f6",
+      "name": "Sticky Note3"
     }
   ],
   "connections": {
-    "Run": {
+    "Run Manually": {
       "main": [
         [
           {
-            "node": "Settings",
+            "node": "Set Website URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Settings": {
+    "Set Website URL": {
       "main": [
         [
           {
-            "node": "Turn the hero into Shopify",
+            "node": "Extract Hero and Find Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn the hero into Shopify": {
+    "Extract Hero and Find Sections": {
       "main": [
         [
           {
-            "node": "Split: one item per section",
+            "node": "List Remaining Sections",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split: one item per section": {
+    "List Remaining Sections": {
       "main": [
         [
           {
-            "node": "Turn each section into Shopify",
+            "node": "Extract Each Section as Shopify",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Turn each section into Shopify": {
+    "Extract Each Section as Shopify": {
       "main": [
         [
           {
-            "node": "Save each section as a .liquid file",
+            "node": "Save Each Section as Liquid File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Save each section as a .liquid file": {
+    "Save Each Section as Liquid File": {
       "main": [
         [
           {
-            "node": "Zip the sections",
+            "node": "Zip the Liquid Sections",
             "type": "main",
             "index": 0
           }

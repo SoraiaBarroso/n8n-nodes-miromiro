@@ -3,46 +3,46 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## An AI agent that reads and rebuilds websites\nOpen the chat and ask:\n*Turn the hero of linear.app into a React component*\nor *What are the brand colors and fonts of airbnb.com?*\n\nWorks with any chat model: swap the Anthropic node for OpenAI, Gemini or another.\n\n**Setup**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Add your model credential (Anthropic here).",
-        "height": 180,
-        "width": 640,
-        "color": 6
+        "content": "## AI agent that rebuilds websites with MiroMiro\n\n### How it works\nA chat agent that reads and rebuilds websites. Open the chat in **Chat with the Agent** and ask, for example, \"Turn the hero of linear.app into a React component\" or \"What are the brand colors and fonts of airbnb.com?\". **Website Rebuild Agent** decides which MiroMiro tool to call: **Get Brand Kit** for colors, fonts and logo, or **Turn Section into Code** for a section (hero, header, pricing, footer...) as React, read from the live page in a real browser. It replies with the code and a preview link. If a site cannot be read, the agent says why. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Get Brand Kit** > Credential > Create new, and paste the key.\n4. Select the same credential in **Turn Section into Code**.\n5. Add your Anthropic credential in **Claude Chat Model**, or swap it for OpenAI, Gemini or any chat model.\n6. Click **Open chat** and ask about a website.\n\nA brand kit or a section costs 10 MiroMiro credits. The same call again within 24 hours is free.\n\n### Customization\nChange the output in **Turn Section into Code** to Tailwind, HTML, Vue, Elementor or Shopify. Add the other MiroMiro operations (images, fonts, design tokens) as more tools. Connect the agent to Slack or Telegram instead of the n8n chat.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/ai-agent-rebuild-websites.png)",
+        "width": 520,
+        "height": 1068,
+        "color": 1
       },
-      "id": "n2",
-      "name": "Note agent",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -40,
-        260
-      ]
+        -660,
+        100
+      ],
+      "id": "16e04cea-20d3-5439-a249-7fa490823cda",
+      "name": "Sticky Note"
     },
     {
       "parameters": {
         "options": {}
       },
       "id": "c1",
-      "name": "Chat",
+      "name": "Chat with the Agent",
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
         0,
-        480
+        300
       ]
     },
     {
       "parameters": {
         "options": {
-          "systemMessage": "You help people rebuild websites. When the user names a website, use MiroMiro: \"MiroMiro brand\" for its brand colors, fonts and logo, \"MiroMiro code\" to turn a section of it into a React component. Return the code exactly as the tool gives it, then add the previewUrl so they can see it rendered."
+          "systemMessage": "You help people rebuild websites. When the user names a website, use your tools: \"Get Brand Kit\" for its brand colors, fonts and logo, \"Turn Section into Code\" to turn a section of it into a React component. Return the code exactly as the tool gives it, then add the previewUrl so they can see it rendered. If a tool returns an error, tell the user what went wrong in one sentence."
         }
       },
       "id": "a1",
-      "name": "AI agent",
+      "name": "Website Rebuild Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        240,
-        480
+        260,
+        300
       ]
     },
     {
@@ -56,19 +56,13 @@
         "options": {}
       },
       "id": "an1",
-      "name": "Chat model (Claude)",
+      "name": "Claude Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
       "typeVersion": 1.3,
       "position": [
         180,
-        700
-      ],
-      "credentials": {
-        "anthropicApi": {
-          "id": "",
-          "name": "Anthropic account"
-        }
-      }
+        520
+      ]
     },
     {
       "parameters": {
@@ -78,19 +72,13 @@
         "options": {}
       },
       "id": "m3",
-      "name": "Tool: get the brand kit",
+      "name": "Get Brand Kit",
       "type": "n8n-nodes-miromiro.miroMiroTool",
       "typeVersion": 1,
       "position": [
         400,
-        700
-      ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      }
+        520
+      ]
     },
     {
       "parameters": {
@@ -102,60 +90,86 @@
         "codeOptions": {}
       },
       "id": "mm-code-tool-1",
-      "name": "Tool: turn a section into code",
+      "name": "Turn Section into Code",
       "type": "n8n-nodes-miromiro.miroMiroTool",
       "typeVersion": 1,
       "position": [
         620,
-        700
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Chat\n\nClick Open chat and ask about any website.",
+        "width": 220,
+        "height": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
       ],
-      "credentials": {
-        "miroMiroApi": {
-          "id": "",
-          "name": "MiroMiro API"
-        }
-      }
+      "id": "2c18c268-cb37-5a81-9570-5f8d1263792a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Agent and tools\n\nThe agent picks a MiroMiro tool: the brand kit, or a section as React code. Swap the chat model for any other.",
+        "width": 660,
+        "height": 560,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        120,
+        140
+      ],
+      "id": "2bb3f1b3-1412-5278-8937-3f3892d8cf4d",
+      "name": "Sticky Note2"
     }
   ],
   "connections": {
-    "Chat": {
+    "Chat with the Agent": {
       "main": [
         [
           {
-            "node": "AI agent",
+            "node": "Website Rebuild Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Chat model (Claude)": {
+    "Claude Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "AI agent",
+            "node": "Website Rebuild Agent",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Tool: get the brand kit": {
+    "Get Brand Kit": {
       "ai_tool": [
         [
           {
-            "node": "AI agent",
+            "node": "Website Rebuild Agent",
             "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Tool: turn a section into code": {
+    "Turn Section into Code": {
       "ai_tool": [
         [
           {
-            "node": "AI agent",
+            "node": "Website Rebuild Agent",
             "type": "ai_tool",
             "index": 0
           }
