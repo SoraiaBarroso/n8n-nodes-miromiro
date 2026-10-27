@@ -2,254 +2,254 @@
   "name": "Download every image from a website (zip) with MiroMiro",
   "nodes": [
     {
-      "id": "note",
-      "name": "Overview",
+      "parameters": {
+        "content": "## Download every image from a website (zip) with MiroMiro\n\n### How it works\nCollect every image from a web page in one run, for designers, developers and content teams. The page comes from **Set Website URL**. **Fetch Images from MiroMiro** opens the page and lists every image it shows: img tags, srcset sizes, picture sources, CSS backgrounds, favicons and the og:image. Duplicate URLs are removed, each file is downloaded, and everything is packed into one zip named after the site. A download that fails is skipped and counted, so one broken link does not stop the run. If the page has no images or cannot be reached, the workflow stops with a message that says why. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.4 on n8n 1.123).\n1. On n8n Cloud, search \"MiroMiro\" in the nodes panel (an admin may need to turn on Verified Community Nodes). Self-hosted: Settings > Community nodes > Install `n8n-nodes-miromiro`, see https://docs.n8n.io/integrations/community-nodes/installation/\n2. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n3. Open **Fetch Images from MiroMiro** > Credential > Create new, and paste the key.\n4. Set your page in **Set Website URL** and click **Execute workflow**. Download the zip from **Compress Images into Zip File** > Binary.\n\nEach page costs 1 credit, however many images it has. The same page again within 24 hours is free.\n\n### Customization\nFor images that only load when you scroll, open **Fetch Images from MiroMiro** > Additional Options > Render in a Browser (+5 credits). Use a Schedule trigger or a Google Sheets list for many pages, and send the zip to Google Drive or email. To keep only some files, filter the URLs in **Prepare Image URLs**. Pages behind a login cannot be read.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/download-every-image.png)",
+        "width": 520,
+        "height": 1040,
+        "color": 1
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1060,
-        -40
+        -1100,
+        100
       ],
+      "id": "cffe56ea-7012-471b-ba0f-38cad5328ecb",
+      "name": "Sticky Note"
+    },
+    {
       "parameters": {
-        "content": "### How it works\nThis workflow helps designers, developers and content teams collect every image from a web page in one run. You give it a URL. The MiroMiro node opens the page and lists every image it shows: img tags, srcset sizes, picture sources, CSS backgrounds, favicons and the og:image. n8n removes duplicate URLs, downloads each file and packs them into one zip named after the site. A download that fails is skipped and counted, so one broken link does not stop the run. If the page has no images, or cannot be reached, the workflow stops with a message that says why. Failed calls are not charged.\n\n### Setup\nThis template uses the verified community node **n8n-nodes-miromiro** (tested with version 0.1.3 on n8n 1.123). On n8n Cloud, search \"MiroMiro\" in the nodes panel. On self-hosted n8n, install it from Settings > Community nodes: https://docs.n8n.io/integrations/community-nodes/installation/\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open **List the images on the page** > Credential > Create new, and paste the key.\n3. Set your page in **Settings** > website and click **Execute workflow**.\n4. Download the zip from **Zip the images** > Binary.\n\nEach page costs 1 credit. The same page again within 24 hours is free.\n\n### Customization\nFor images that only load when you scroll, open the MiroMiro node > Additional Options > Render in a Browser (+5 credits). Replace **Run** with a Schedule trigger or a Google Sheets list to process many pages, and send the zip to Google Drive or email instead of downloading it. Pages behind a login cannot be read.\n\n![The workflow, in case the preview does not load](https://raw.githubusercontent.com/SoraiaBarroso/n8n-nodes-miromiro/main/docs/templates/download-every-image.png)",
-        "height": 930,
-        "width": 520,
-        "color": 1
-      }
+        "content": "## Start and configure\n\nStarts the workflow manually and sets the website URL that will be scanned for images.",
+        "width": 416,
+        "height": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        160
+      ],
+      "id": "71cc2c4a-6868-454c-8d65-4c4b3d2829a2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Find image URLs\n\nUses MiroMiro to list images on the configured page, then converts the results into one deduplicated item per image URL.",
+        "width": 416,
+        "height": 320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        144
+      ],
+      "id": "9d49cd24-d369-44ca-b5a9-572167222c7c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Download and zip\n\nDownloads each image, gathers all downloaded binaries onto a single item, and compresses them into one ZIP file.",
+        "width": 640,
+        "height": 304,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        160
+      ],
+      "id": "2f641267-0a3f-4f74-bbab-49dc4947591c",
+      "name": "Sticky Note3"
     },
     {
       "id": "run",
-      "name": "Run",
+      "name": "Manual Trigger Initiation",
       "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
       "position": [
         -440,
         300
       ],
-      "parameters": {}
+      "parameters": {},
+      "typeVersion": 1
     },
     {
       "id": "settings",
-      "name": "Settings",
+      "name": "Set Website URL",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
       "position": [
         -220,
         300
       ],
       "parameters": {
+        "options": {},
         "assignments": {
           "assignments": [
             {
               "id": "s0",
               "name": "website",
-              "value": "https://www.allbirds.com",
-              "type": "string"
+              "type": "string",
+              "value": "https://www.allbirds.com"
             }
           ]
-        },
-        "options": {}
-      }
+        }
+      },
+      "typeVersion": 3.4
     },
     {
       "id": "a1",
-      "name": "List the images on the page",
+      "name": "Fetch Images from MiroMiro",
       "type": "n8n-nodes-miromiro.miroMiro",
-      "typeVersion": 1,
       "position": [
         40,
         300
       ],
       "parameters": {
-        "resource": "website",
-        "operation": "images",
         "url": "={{ $json.website }}",
-        "options": {}
-      }
+        "options": {},
+        "resource": "website",
+        "operation": "images"
+      },
+      "typeVersion": 1
     },
     {
       "id": "a2",
-      "name": "Split: one item per image",
+      "name": "Prepare Image URLs",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
         260,
         300
       ],
       "parameters": {
-        "jsCode": "// One item per image URL, duplicates removed.\nconst found = $input.first().json.images || []\nconst urls = [...new Set(found.map(img => img.url || img.src || img).filter(u => typeof u === 'string' && u.startsWith('http')))]\nif (!urls.length) {\n  throw new Error('No images found on this page. Check the URL in Settings, or turn on Additional Options > Render in a Browser in the MiroMiro node for images that load on scroll.')\n}\nreturn urls.map(url => ({ json: { url }, pairedItem: { item: 0 } }))"
-      }
+        "jsCode": "// One item per image URL, duplicates removed.\nconst found = $input.first().json.images || []\nconst urls = [...new Set(found.map(img => img.url || img.src || img).filter(u => typeof u === 'string' && u.startsWith('http')))]\nif (!urls.length) {\n  throw new Error('No images found on this page. Check the URL in Set Website URL, or turn on Additional Options > Render in a Browser in Fetch Images from MiroMiro for images that load on scroll.')\n}\nreturn urls.map(url => ({ json: { url }, pairedItem: { item: 0 } }))"
+      },
+      "typeVersion": 2
     },
     {
       "id": "a3",
-      "name": "Download each image",
+      "name": "Download Images from URLs",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
+      "onError": "continueRegularOutput",
       "position": [
         560,
         300
       ],
-      "onError": "continueRegularOutput",
       "parameters": {
         "url": "={{ $json.url }}",
         "options": {
+          "timeout": 30000,
           "response": {
             "response": {
               "responseFormat": "file"
             }
-          },
-          "timeout": 30000
+          }
         }
-      }
+      },
+      "typeVersion": 4.3
     },
     {
       "id": "a4",
-      "name": "Put all images together",
+      "name": "Combine Images for Zip",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
         780,
         300
       ],
       "parameters": {
         "jsCode": "// Every downloaded image on one item, so they land in one zip.\n// Items without a file are failed downloads (skipped, not fatal).\nconst binary = {}\nlet failed = 0\n$input.all().forEach((item, i) => {\n  if (item.binary?.data) binary['image_' + String(i + 1).padStart(3, '0')] = item.binary.data\n  else failed++\n})\nif (!Object.keys(binary).length) throw new Error('None of the images could be downloaded. The site may block direct downloads.')\nreturn [{ json: { downloaded: Object.keys(binary).length, failed }, binary, pairedItem: { item: 0 } }]"
-      }
+      },
+      "typeVersion": 2
     },
     {
       "id": "a5",
-      "name": "Zip the images",
+      "name": "Compress Images into Zip File",
       "type": "n8n-nodes-base.compression",
-      "typeVersion": 1.1,
       "position": [
         1000,
         300
       ],
       "parameters": {
+        "fileName": "={{ String($('Set Website URL').first().json.website).split('/')[2].replace(/^www\\./, '') }}-images.zip",
         "operation": "compress",
-        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "outputFormat": "zip",
-        "fileName": "={{ String($('Settings').first().json.website).split('/')[2].replace(/^www\\./, '') }}-images.zip",
+        "binaryPropertyName": "={{ Object.keys($binary).join(\",\") }}",
         "binaryPropertyOutput": "data"
-      }
-    },
-    {
-      "parameters": {
-        "content": "## Choose the page\nPut the page you want in **Settings** > website.",
-        "height": 340,
-        "width": 420,
-        "color": 7
       },
-      "id": "section:-choose-the-page",
-      "name": "Section: choose the page",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -500,
-        140
-      ]
-    },
-    {
-      "parameters": {
-        "content": "## Find the images\nMiroMiro lists every image the page shows. Duplicates are removed; a page with no images stops here with a message.",
-        "height": 340,
-        "width": 440,
-        "color": 7
-      },
-      "id": "section:-find-the-images",
-      "name": "Section: find the images",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -20,
-        140
-      ]
-    },
-    {
-      "parameters": {
-        "content": "## Download and zip\nEach image is downloaded. Failed downloads are skipped and counted, the rest go into one zip.",
-        "height": 340,
-        "width": 640,
-        "color": 7
-      },
-      "id": "section:-download-and-zip",
-      "name": "Section: download and zip",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        500,
-        140
-      ]
+      "typeVersion": 1.1
     }
   ],
+  "settings": {
+    "executionOrder": "v1"
+  },
   "connections": {
-    "Run": {
+    "Manual Trigger Initiation": {
       "main": [
         [
           {
-            "node": "Settings",
+            "node": "Set Website URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Settings": {
+    "Set Website URL": {
       "main": [
         [
           {
-            "node": "List the images on the page",
+            "node": "Fetch Images from MiroMiro",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "List the images on the page": {
+    "Download Images from URLs": {
       "main": [
         [
           {
-            "node": "Split: one item per image",
+            "node": "Combine Images for Zip",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split: one item per image": {
+    "Combine Images for Zip": {
       "main": [
         [
           {
-            "node": "Download each image",
+            "node": "Compress Images into Zip File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Download each image": {
+    "Prepare Image URLs": {
       "main": [
         [
           {
-            "node": "Put all images together",
+            "node": "Download Images from URLs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Put all images together": {
+    "Fetch Images from MiroMiro": {
       "main": [
         [
           {
-            "node": "Zip the images",
+            "node": "Prepare Image URLs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  },
-  "settings": {
-    "executionOrder": "v1"
   }
 }
