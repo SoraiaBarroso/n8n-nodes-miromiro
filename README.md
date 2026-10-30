@@ -86,6 +86,7 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 |---|---|---|
 | **[Download every image from a website](workflows/download-every-image.json)** | Every image on the page (photos, backgrounds, logos, `og:image`) in one `.zip` | 1 |
 | **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json)** | Every section as Tailwind, React (JSX), HTML or Vue, one file per section in a `.zip`, plus a link to the whole page assembled with a Download HTML button | 10 per section |
+| **[Rebuild a whole website as code](workflows/rebuild-whole-website-as-code.json)** | Every page of a site from its sitemap, grouped by template; the unique pages plus one of each template rebuilt as Tailwind, React, HTML, Vue, Elementor or Shopify, one folder per page in a `.zip`. Uses the HTTP Request node with the MiroMiro credential, so it works on any node version | 0 to list, 30 per page (paid plans) |
 | **[Rebuild a whole page in Elementor](workflows/rebuild-whole-page-in-elementor.json)** | Every section joined, in page order, into **one Elementor page template** to import into WordPress | 10 per section |
 | **[Turn a website section into an Elementor template](workflows/section-to-elementor.json)** | One section (hero, pricing, footer...) as an importable Elementor `.json` | 10 |
 | **[Rebuild a whole page as Shopify sections](workflows/rebuild-whole-page-as-shopify-sections.json)** | Every section as a Shopify Online Store 2.0 section (`.liquid`), zipped, ready for *Edit code > sections* | 10 per section |
