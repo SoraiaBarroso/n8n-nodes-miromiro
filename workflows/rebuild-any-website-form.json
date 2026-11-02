@@ -63,7 +63,8 @@
           "path": "rebuild",
           "buttonLabel": "Rebuild it"
         }
-      }
+      },
+      "webhookId": "7d1c3f0e-5b8a-4c2e-9a61-3b5d7f9a1c01"
     },
     {
       "id": "n3",
@@ -143,7 +144,8 @@
         "operation": "completion",
         "respondWith": "redirect",
         "redirectUrl": "={{ $json.pagePreviewUrl }}"
-      }
+      },
+      "webhookId": "0b9e2d4a-6c1f-4e8b-8d3a-2c4e6a8b0d02"
     },
     {
       "parameters": {

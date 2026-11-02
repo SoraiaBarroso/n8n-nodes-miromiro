@@ -1,0 +1,299 @@
+{
+  "name": "AI landing page design audit (contrast, fonts, CTA) with MiroMiro",
+  "nodes": [
+    {
+      "id": "note",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        -260
+      ],
+      "parameters": {
+        "width": 820,
+        "height": 440,
+        "color": 7,
+        "content": "## AI landing page design audit\nPaste any landing page into the form and get a design and conversion audit in your browser, with a score out of 100, the issues ranked, and quick wins.\n\nUnlike text-only audits, it is based on the page's **real design**, measured by MiroMiro:\n- **Contrast** of text and buttons, checked against WCAG\n- **Consistency**: how many fonts, font sizes and colors the page uses\n- **The hero**: its headline and calls to action\n- **Structure**: which sections the page has, in order (trust, pricing, FAQ...)\n\nThe AI only explains and prioritizes those measurements. About 45 MiroMiro credits per audit.\n\n**Setup (2 minutes)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding\n2. Open any MiroMiro node > Credential > Create new, paste the key.\n3. Add your AI model credential on **Chat model** (Anthropic here; swap in OpenAI or Gemini if you prefer).\n4. Open the form: **Audit a landing page** > Test URL (or activate the workflow for a permanent link)."
+      }
+    },
+    {
+      "id": "form",
+      "name": "Audit a landing page",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -460,
+        300
+      ],
+      "webhookId": "4f1d2c3a-8b7e-4a6f-9c2d-1e5b7a9c3d01",
+      "parameters": {
+        "formTitle": "Landing page design audit",
+        "formDescription": "Paste a landing page. MiroMiro measures its real design and AI writes the audit.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Landing page URL",
+              "placeholder": "https://linear.app",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What should this page get visitors to do?",
+              "placeholder": "e.g. start a free trial"
+            }
+          ]
+        },
+        "options": {
+          "path": "landing-page-audit",
+          "buttonLabel": "Audit it"
+        }
+      }
+    },
+    {
+      "id": "b",
+      "name": "Get the brand kit",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $json['Landing page URL'] }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "t",
+      "name": "Get the design tokens",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "tokens",
+        "url": "={{ $('Audit a landing page').first().json['Landing page URL'] }}",
+        "format": "json",
+        "options": {}
+      }
+    },
+    {
+      "id": "h",
+      "name": "Read the hero and sections",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $('Audit a landing page').first().json['Landing page URL'] }}",
+        "framework": "html",
+        "section": "hero",
+        "codeOptions": {}
+      }
+    },
+    {
+      "id": "checks",
+      "name": "Measure the design",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const form = $('Audit a landing page').first().json\nconst brand = $('Get the brand kit').first().json\nconst tokens = $('Get the design tokens').first().json\nconst hero = $('Read the hero and sections').first().json\n\n// WCAG 2 contrast ratio between two hex colors.\nconst hex = h => { h = String(h || '').replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return /^[0-9a-f]{6}$/i.test(h) ? h : null }\nconst lum = h => { const v = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(c => c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] }\nconst contrast = (a, b) => { a = hex(a); b = hex(b); if (!a || !b) return null; const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return Math.round(((x + 0.05) / (y + 0.05)) * 100) / 100 }\nconst grade = r => r == null ? 'unknown' : r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : r >= 3 ? 'AA large text only' : 'fails'\n\nconst c = brand.colors || {}\nconst pairs = [\n  ['body text on background', c.text, c.background],\n  ['primary color on background', c.primary, c.background],\n  ['white text on a primary button', '#ffffff', c.primary],\n  ['accent on background', c.accent, c.background],\n].filter(([, a, b]) => a && b).map(([what, a, b]) => { const r = contrast(a, b); return { what, colors: a + ' on ' + b, ratio: r, wcag: grade(r) } })\n\n// Design-system size. The stylesheet holds every value the site ships\n// (responsive, hover, unused), so \"core\" = values used at least 5 times.\nconst list = v => Array.isArray(v) ? v : []\nconst core = v => list(v).filter(x => (x.count || 0) >= 5).length\n// Solid colors only: no transparent, rgba/hsla or alpha hex (#rgba, #rrggbbaa).\nconst solid = list(tokens.colors).filter(x => { const v = String(x.color || ''); return !/transparent|inherit|currentcolor|rgba|hsla|\\/\\s*[\\d.]+%?\\s*\\)/i.test(v) && !/^#([0-9a-f]{4}|[0-9a-f]{8})$/i.test(v) })\nconst counts = {\n  fontFamilies: (brand.fonts || []).length,\n  fontFamilyNames: brand.fonts || [],\n  fontSizes: { total: list(tokens.fontSizes).length, usedOften: core(tokens.fontSizes), mostUsed: list(tokens.fontSizes).slice(0, 8).map(x => x.size) },\n  fontWeights: list(tokens.fontWeights).length,\n  colors: { total: solid.length, usedOften: core(solid), mostUsed: solid.slice(0, 8).map(x => x.color) },\n  spacingValues: { total: list(tokens.spacing).length, usedOften: core(tokens.spacing) },\n  cornerRadii: { total: list(tokens.borderRadiuses).length, usedOften: core(tokens.borderRadiuses) },\n  shadows: list(tokens.boxShadows).length,\n  note: 'Counts come from the whole stylesheet (responsive and hover states included); \"usedOften\" (5+ uses) is the real design system.',\n}\n\n// The hero's words: headline and calls to action, read from its code.\nconst code = String(hero.code || '')\nconst textOf = s => s.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim()\n// Responsive sites repeat the headline per breakpoint: keep one copy.\nconst once = t => { const w = t.split(' '); for (let n = 4; n >= 2; n--) { if (w.length % n) continue; const k = w.length / n, c = w.slice(0, k).join(' '); if (Array.from({ length: n }, (_, i) => w.slice(i * k, (i + 1) * k).join(' ')).every(x => x === c)) return c } return t }\nconst headline = once(textOf((code.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/i) || code.match(/<h2[^>]*>([\\s\\S]*?)<\\/h2>/i) || [, ''])[1]))\n// Calls to action: buttons and action-worded links first (product screenshots\n// inside a hero are full of menu labels, which are not CTAs).\nconst verb = /^(get|start|try|sign|book|buy|shop|join|request|contact|download|see|learn|watch|create|explore|talk|schedule|order|subscribe|open|claim|discover|apply|install|view)\\b/i\nconst links = [...code.matchAll(/<(a|button)\\b([^>]*)>([\\s\\S]*?)<\\/\\1>/gi)].map(m => ({ text: textOf(m[3]), button: m[1].toLowerCase() === 'button' || /btn|button|cta/i.test(m[2]) }))\n  .filter(l => l.text && l.text.length < 40)\n// Action-worded links/buttons are CTAs; other buttons are listed apart (often\n// menu labels inside a product screenshot).\nconst ctas = links.filter(l => verb.test(l.text)).map(l => l.text)\nconst otherButtons = links.filter(l => l.button && !verb.test(l.text)).map(l => l.text)\nconst sections = (hero.sections || []).sort((a, b) => a.order - b.order).map(s => String(s.label || '').slice(0, 80))\n\nconst facts = {\n  website: form['Landing page URL'],\n  brand: { colors: c, fonts: brand.fonts || [], logoFound: !!brand.logo, colorsDeclaredOrInferred: brand.signals?.explanation || '' },\n  contrast: pairs,\n  designSystem: counts,\n  hero: {\n    headline,\n    callsToAction: [...new Set(ctas)].slice(0, 5),\n    note: ctas.length ? '' : 'No action-worded call to action (Get started, Try, Sign up, Book...) found in the hero.',\n    otherButtonsInHero: [...new Set(otherButtons)].slice(0, 5),\n  },\n  sectionsInOrder: sections,\n  goal: form['What should this page get visitors to do?'] || 'not given',\n}\nreturn [{ json: { facts, factsText: JSON.stringify(facts, null, 2) } }]"
+      }
+    },
+    {
+      "id": "llm",
+      "name": "Write the audit",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior conversion and visual designer. Audit this landing page using ONLY the measured facts below (read from the live page by MiroMiro). Never invent numbers; when a fact is missing, say so.\n\nFacts:\n{{ $json.factsText }}\n\nWrite the audit in Markdown with exactly these parts, each starting with a \"## \" heading:\n1. \"## Score: N/100\", then a one-sentence verdict.\n2. \"## What works\" - 2 to 4 bullets.\n3. \"## Issues, most important first\" - at most 4. For each: what is wrong, the evidence (the measured number, e.g. contrast 3.1:1 fails WCAG AA), why it costs conversions, and the fix.\n   Check: contrast (WCAG AA needs 4.5:1 for text), too many font families (more than 2-3) or font sizes (a clean type scale has about 6-10), too many colors, whether the hero headline says what the product does, whether there is ONE clear primary call to action, and whether the page has trust sections (testimonials, logos, reviews), pricing or an FAQ before the footer.\n4. \"## Quick wins this week\" - 3 numbered, concrete changes.\n\nHow to read the facts:\n- sectionsInOrder holds the FIRST WORDS of each section, not its type. A quote (\"You'll probably build a better product...\") is a testimonial. Image-only sections, like customer logo strips, have no words and may look empty or be missing. So never state that trust content is missing: if you cannot spot it, say \"trust content was not detected in the section text\" and suggest checking.\n- Prefer measured contrast, type and color numbers over guesses about copy.\nKeep it under 400 words. Plain, direct language."
+      }
+    },
+    {
+      "id": "model",
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        520
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "",
+          "name": "Anthropic account"
+        }
+      },
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-haiku-5-5",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "md",
+      "name": "Format the report",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.text }}",
+        "destinationKey": "html",
+        "options": {}
+      }
+    },
+    {
+      "id": "show",
+      "name": "Show the audit",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        1080,
+        300
+      ],
+      "webhookId": "9a3e5b7c-2d4f-4b8a-a1c3-5e7f9b2d4a02",
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=<style>.mm{max-width:760px;margin:24px auto;padding:36px 40px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;text-align:left;font:16px/1.7 system-ui,-apple-system,Segoe UI,sans-serif;color:#111827}.mm .src{font-size:13px;color:#6b7280;margin:0 0 4px}.mm h2{font-size:20px;line-height:1.3;margin:28px 0 10px;color:#111827}.mm h2:first-of-type{font-size:28px;margin-top:4px}.mm p,.mm li{margin:0 0 10px}.mm ul,.mm ol{padding-left:22px;margin:0 0 8px}.mm strong{color:#111827}.mm .foot{margin-top:28px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280}</style><div class=\"mm\"><p class=\"src\">Design audit of {{ $('Audit a landing page').first().json['Landing page URL'] }}</p>{{ $json.html }}<p class=\"foot\">Measured by MiroMiro (miromiro.app/api): contrast, fonts, colors, hero and sections read from the live page.</p></div>"
+      }
+    }
+  ],
+  "connections": {
+    "Audit a landing page": {
+      "main": [
+        [
+          {
+            "node": "Get the brand kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the brand kit": {
+      "main": [
+        [
+          {
+            "node": "Get the design tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the design tokens": {
+      "main": [
+        [
+          {
+            "node": "Read the hero and sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the hero and sections": {
+      "main": [
+        [
+          {
+            "node": "Measure the design",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Measure the design": {
+      "main": [
+        [
+          {
+            "node": "Write the audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write the audit",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write the audit": {
+      "main": [
+        [
+          {
+            "node": "Format the report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format the report": {
+      "main": [
+        [
+          {
+            "node": "Show the audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
