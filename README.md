@@ -5,6 +5,7 @@ This is an n8n community node for [MiroMiro](https://miromiro.app/api). It turns
 **What you can do with it, each one a ready-made [template](#templates) you import in one click:**
 
 * Audit any landing page with AI, based on its measured design (contrast, fonts, colors, CTA)
+* Track your competitors' websites weekly and get an AI briefing of what changed
 * Download every image from a website into one zip
 * Rebuild a whole page as code (Tailwind, React, HTML or Vue)
 * Rebuild a whole page in Elementor, as one template to import into WordPress
@@ -86,6 +87,7 @@ Or download the `.json` and use **Import from File**. Then open any MiroMiro nod
 | Template | What you get | Credits |
 |---|---|---|
 | **[AI landing page design audit](workflows/ai-landing-page-design-audit.json)** | Paste a URL into a form and get a design and conversion audit in your browser: a score out of 100, issues ranked with evidence (WCAG contrast, number of fonts, sizes and colors, the hero's call to action, trust sections) and 3 quick wins. Needs an AI model credential (Anthropic, OpenAI...) | 45 |
+| **[Competitor website tracker](workflows/competitor-website-tracker.json)** | Every Monday, reads your competitors' homepages (brand colors, fonts, hero headline, calls to action, sections), compares them with last week and emails you an AI briefing of what changed and what it might signal. Snapshots are kept in the workflow, nothing else to set up. Needs an AI model and Gmail (or Slack) | 35 per competitor per week |
 | **[Download every image from a website](workflows/download-every-image.json)** | Every image on the page (photos, backgrounds, logos, `og:image`) in one `.zip` | 1 |
 | **[Rebuild a whole page as code](workflows/rebuild-whole-page-as-code.json)** | Every section as Tailwind, React (JSX), HTML or Vue, one file per section in a `.zip`, plus a link to the whole page assembled with a Download HTML button | 10 per section |
 | **[Rebuild a whole website as code](workflows/rebuild-whole-website-as-code.json)** | Every page of a site from its sitemap, grouped by template; the unique pages plus one of each template rebuilt as Tailwind, React, HTML, Vue, Elementor or Shopify, one folder per page in a `.zip`. Uses the HTTP Request node with the MiroMiro credential, so it works on any node version | 0 to list, 30 per page (paid plans) |

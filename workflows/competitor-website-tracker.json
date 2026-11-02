@@ -1,0 +1,324 @@
+{
+  "name": "Competitor website tracker: weekly AI briefing of design and messaging changes with MiroMiro",
+  "nodes": [
+    {
+      "id": "note",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -300
+      ],
+      "parameters": {
+        "width": 860,
+        "height": 480,
+        "color": 7,
+        "content": "## Competitor website tracker\nEvery Monday, MiroMiro reads your competitors' homepages: brand colors, fonts, hero headline, calls to action and the list of sections. The workflow compares them with last week and AI emails you a short briefing of what changed and what it might mean.\n\nCatches things like: a new hero message, a changed call to action (\"Start free\" -> \"Book a demo\"), a new pricing or testimonials section, a rebrand.\n\nSnapshots are kept in the workflow's own memory, so there is nothing else to set up. The first run saves a baseline. About 35 MiroMiro credits per competitor per week.\n\n**Setup (3 minutes)**\n1. Get a free MiroMiro API key (300 credits a month, no card): https://miromiro.app/api/onboarding, then add it on any MiroMiro node.\n2. Put your competitors in **Settings**, one URL per line.\n3. Add your AI model credential on **Chat model** (Anthropic here; OpenAI or Gemini work too).\n4. Connect Gmail on **Email the briefing** and set your address (or swap it for Slack).\n5. Activate the workflow. Snapshots are only remembered on scheduled runs, not on manual test runs."
+      }
+    },
+    {
+      "id": "sched",
+      "name": "Every Monday",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "settings",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -300,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s0",
+              "name": "competitors",
+              "value": "https://linear.app\nhttps://www.notion.com\nhttps://clickup.com",
+              "type": "string"
+            },
+            {
+              "id": "s1",
+              "name": "email",
+              "value": "you@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split",
+      "name": "Split: one item per competitor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// One item per competitor (one URL per line, commas work too).\nreturn String($json.competitors).split(/\\n|,/).map(s => s.trim()).filter(Boolean)\n  .map(url => ({ json: { url }, pairedItem: { item: 0 } }))"
+      }
+    },
+    {
+      "id": "brand",
+      "name": "Get the brand kit",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        140,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "brand",
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "hero",
+      "name": "Read the hero and sections",
+      "type": "n8n-nodes-miromiro.miroMiro",
+      "typeVersion": 1,
+      "position": [
+        360,
+        300
+      ],
+      "credentials": {
+        "miroMiroApi": {
+          "id": "",
+          "name": "MiroMiro API"
+        }
+      },
+      "parameters": {
+        "resource": "website",
+        "operation": "code",
+        "url": "={{ $json.url }}",
+        "framework": "html",
+        "section": "hero",
+        "codeOptions": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "compare",
+      "name": "Compare with last week",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sites = $('Split: one item per competitor').all()\nconst brands = $('Get the brand kit').all()\nconst heroes = $input.all()\n// Last week's snapshots live in the workflow's own memory. Production runs\n// (the schedule) save them; manual test runs start fresh each time.\nconst memory = $getWorkflowStaticData('global')\nmemory.snapshots = memory.snapshots || {}\n\nconst textOf = s => String(s || '').replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim()\nconst firstWords = (s, n) => String(s || '').split(/\\s+/).slice(0, n).join(' ')\n// Responsive sites repeat the headline once per breakpoint: keep one copy.\nconst once = t => { const w = t.split(' '); for (let n = 4; n >= 2; n--) { if (w.length % n) continue; const k = w.length / n, c = w.slice(0, k).join(' '); if (Array.from({ length: n }, (_, i) => w.slice(i * k, (i + 1) * k).join(' ')).every(x => x === c)) return c } return t }\nconst verb = /^(get|start|try|sign|book|buy|shop|join|request|contact|download|see|learn|watch|create|explore|talk|schedule|order|subscribe|claim|discover|apply|install|view)\\b/i\n\nconst reports = sites.map((site, i) => {\n  const url = site.json.url\n  const b = brands[i]?.json || {}\n  const h = heroes[i]?.json || {}\n  if (b.error || h.error) return { url, error: String((b.error || h.error).message || b.error || h.error) }\n  const code = String(h.code || '')\n  const now = {\n    colors: b.colors || {},\n    fonts: b.fonts || [],\n    headline: once(textOf((code.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/i) || code.match(/<h2[^>]*>([\\s\\S]*?)<\\/h2>/i) || [, ''])[1])).slice(0, 160),\n    ctas: [...new Set([...code.matchAll(/<(a|button)\\b[^>]*>([\\s\\S]*?)<\\/\\1>/gi)].map(m => textOf(m[2])).filter(t => verb.test(t) && t.length < 40))].slice(0, 5),\n    sections: (h.sections || []).sort((a, b) => a.order - b.order).map(s => firstWords(s.label, 6)),\n    checkedAt: new Date().toISOString().slice(0, 10),\n  }\n  const before = memory.snapshots[url]\n  const changes = []\n  if (before) {\n    for (const role of ['primary', 'accent', 'background', 'text'])\n      if ((before.colors || {})[role] !== now.colors[role]) changes.push(role + ' color: ' + (before.colors || {})[role] + ' -> ' + now.colors[role])\n    if (before.fonts.join() !== now.fonts.join()) changes.push('fonts: ' + before.fonts.join(', ') + ' -> ' + now.fonts.join(', '))\n    if (before.headline !== now.headline) changes.push('hero headline: \"' + before.headline + '\" -> \"' + now.headline + '\"')\n    if (before.ctas.join() !== now.ctas.join()) changes.push('hero calls to action: ' + (before.ctas.join(', ') || 'none') + ' -> ' + (now.ctas.join(', ') || 'none'))\n    const added = now.sections.filter(s => !before.sections.includes(s))\n    const removed = before.sections.filter(s => !now.sections.includes(s))\n    if (added.length) changes.push('new sections: ' + added.map(s => '\"' + s + '\"').join(', '))\n    if (removed.length) changes.push('removed sections: ' + removed.map(s => '\"' + s + '\"').join(', '))\n  }\n  memory.snapshots[url] = now\n  return { url, firstCheck: !before, lastChecked: before?.checkedAt || null, changes, now }\n})\n\nconst changed = reports.filter(r => r.changes?.length).length\nreturn [{ json: { reports, reportsText: JSON.stringify(reports, null, 2), changed, total: reports.length } }]"
+      }
+    },
+    {
+      "id": "llm",
+      "name": "Write the briefing",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=You track competitors' websites for a marketing team. Below is this week's check of each competitor's homepage, measured by MiroMiro: brand colors, fonts, hero headline, calls to action and sections, compared with last week.\n\n{{ $json.reportsText }}\n\nWrite a short competitor briefing in Markdown:\n- Start with exactly this count: {{ $json.changed }} of {{ $json.total }} competitors changed something this week. (A first check or a failed check is not a change.)\n- Then one \"## <competitor domain>\" block per competitor. If it changed: list each change in plain words, then one line on what it might signal (new positioning, a rebrand, a pricing push, a new feature...). If \"firstCheck\" is true: say a baseline was saved and summarize its current positioning in one sentence from the headline and calls to action. If nothing changed: \"No changes since <lastChecked>.\"\n- End with \"## Worth a look\" - at most 2 suggestions for our own site, only if a change justifies it.\nOnly use the facts above. Under 300 words."
+      }
+    },
+    {
+      "id": "model",
+      "name": "Chat model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        520
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "",
+          "name": "Anthropic account"
+        }
+      },
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-haiku-5-5",
+          "cachedResultName": "Claude Haiku 5.5"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "md",
+      "name": "Format the briefing",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.text }}",
+        "destinationKey": "html",
+        "options": {}
+      }
+    },
+    {
+      "id": "mail",
+      "name": "Email the briefing",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1240,
+        300
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Settings').first().json.email }}",
+        "subject": "=Competitor briefing: {{ $('Compare with last week').first().json.changed }} changed this week",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Monday": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Split: one item per competitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: one item per competitor": {
+      "main": [
+        [
+          {
+            "node": "Get the brand kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the brand kit": {
+      "main": [
+        [
+          {
+            "node": "Read the hero and sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the hero and sections": {
+      "main": [
+        [
+          {
+            "node": "Compare with last week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare with last week": {
+      "main": [
+        [
+          {
+            "node": "Write the briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write the briefing",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write the briefing": {
+      "main": [
+        [
+          {
+            "node": "Format the briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format the briefing": {
+      "main": [
+        [
+          {
+            "node": "Email the briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
